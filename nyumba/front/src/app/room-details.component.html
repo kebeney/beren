@@ -1,0 +1,48 @@
+<div id="overallDiv">
+
+  <div id="mainBody">
+    <span style="text-align: center;display: block; padding-bottom: 2em;" >
+      <span style="font-weight: bold; ">Room name:</span> {{roomName}}
+      <span style="font-weight: bold; padding-left: 5em;">Room Number:</span> {{roomNum}}
+      <span style="font-weight: bold; padding-left: 5em;">Monthly Rent:</span> {{rent}}
+<!--      <span *ngIf="roomDetails" >Here {{ roomDetails.findIndex(0) }}</span> -->
+    </span>
+
+    <table>
+      <tr>
+        <th>Rent</th>
+        <th>Month</th>
+        <th>Amount</th>
+        <th>Balance</th>
+        <th>Total Paid</th>
+        <th>Payment Date</th>
+        <th>Receipt No.</th>
+      </tr>
+      <tr *ngFor="let detail of state.componentArray" >
+        <td>{{detail.rent}}</td>
+        <td>{{detail.month}}</td>
+        <td>{{detail.amount}}</td>
+        <td>{{detail.balance}}</td>
+        <td>{{detail.totalPaid}}</td>
+        <td>{{detail.paymentDate}}</td>
+        <td>{{detail.receiptNumber}}</td></tr>
+      <tr *ngIf="state.editing" >
+        <td>{{state.component.rent}} </td>
+        <td>{{state.component.month}}</td>
+        <td><input [(ngModel)]="state.component.amount" ></td>
+        <td>{{state.component.balance}}</td>
+        <td><input [(ngModel)]="state.component.totalPaid" > </td>
+        <td><input [(ngModel)]="state.component.paymentDate" > </td>
+        <td><input [(ngModel)]="state.component.receiptNumber" > </td>
+      </tr>
+    </table>
+
+    <div style="text-align: center" >
+      <span *ngIf="state.serverMessage" >{{state.serverMessage}}</span>
+      <button  (click)="addPayment(false)" >{{state.activeAddButtonText}}</button>
+      <button *ngIf="state.editing" (click)="addPayment(true)" >Done</button>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,23 @@
+#overallDiv {
+  display: table;
+  width: 100%;
+}
+#lhn,
+#mainBody {
+  display: table-cell;
+}
+#lhn {
+  width: 200px;
+  background: #ddd;
+}
+#mainBody > table {
+  width: 100%;
+}
+#mainBody > table  td{
+  border: 1px solid lightgrey;
+  text-align: center;
+  background: lightgrey;
+}
+#mainBody > table  tr  td input{
+  width: 100%;
+}

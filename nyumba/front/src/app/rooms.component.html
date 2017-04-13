@@ -1,0 +1,21 @@
+<div id="overallDiv">
+
+  <div id="mainBody">
+    <table>
+      <tr><th></th><th>Room Name</th><th>Rent</th><th>Status</th><th>Occupant</th> </tr>
+      <tr *ngFor="let room of rooms"  >
+        <td> {{room.num}} </td>
+        <td><a [routerLink]="['/roomDetails',room.num, room.name,room.rent ]" > {{room.name}} </a> </td>
+        <td>{{room.rent}}</td>
+        <td>{{room.status}}</td>
+        <td> {{room.occupant}} </td>
+      </tr>
+      <tr *ngIf="editing" ><td>{{room.num}}</td><td><input [(ngModel)]="room.name" ></td><td><input [(ngModel)]="room.rent"> </td><td>{{room.status}}</td><td><input [(ngModel)]="room.occupant" > </td></tr>
+    </table>
+    <div style="text-align: center; padding-top: 5px;" >
+      <button style="text-align: center; align-self: center" (click)="addRoom(false)" >{{activeButtonText}}</button>
+      <button *ngIf="editing" style="text-align: center; align-self: center" (click)="addRoom(true)" >Done</button>
+    </div>
+  </div>
+
+</div>
