@@ -25,24 +25,25 @@
         <td>{{detail.balance}}</td>
         <td>{{detail.totalPaid}}</td>
         <td>{{detail.paymentDate}}</td>
-        <td>{{detail.receiptNumber}}</td></tr>
+        <td>{{detail.receiptNumber}}</td>
+      </tr>
       <tr *ngIf="state.editing" >
         <td>{{state.component.rent}} </td>
         <td>{{state.component.month}}</td>
-        <td><input [(ngModel)]="state.component.amount" ></td>
+        <td><input required [(ngModel)]="state.component.amount" ></td>
         <td>{{state.component.balance}}</td>
         <td><input [(ngModel)]="state.component.totalPaid" > </td>
         <td><input [(ngModel)]="state.component.paymentDate" > </td>
         <td><input [(ngModel)]="state.component.receiptNumber" > </td>
       </tr>
     </table>
+<!--    <vaadin-date-picker></vaadin-date-picker>   -->
 
-    <div style="text-align: center" >
-      <span *ngIf="state.serverMessage" >{{state.serverMessage}}</span>
-      <button  (click)="addPayment(false)" >{{state.activeAddButtonText}}</button>
-      <button *ngIf="state.editing" (click)="addPayment(true)" >Done</button>
+    <div style="text-align: center; padding-top: 5px;" >
+      <span style="padding-right: 2em;" class="blink_me" >{{state.serverMessage}}</span>
+      <button style="text-align: center; align-self: center" (click)="addPayment(false)" >{{state.activeAddButtonText}}</button>
+      <button *ngIf="state.editing" style="text-align: center; align-self: center" (click)="addPayment(true)" >Save</button>
     </div>
-
   </div>
 
 </div>

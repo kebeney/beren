@@ -3,19 +3,46 @@
   <div id="mainBody">
     <table>
       <tr><th></th><th>Room Name</th><th>Rent</th><th>Status</th><th>Occupant</th> </tr>
-      <tr *ngFor="let room of rooms"  >
+      <tr *ngFor="let room of state.componentArray"  >
         <td> {{room.num}} </td>
-        <td><a [routerLink]="['/roomDetails',room.num, room.name,room.rent ]" > {{room.name}} </a> </td>
+        <td><a [routerLink]="['/roomDetails',room.num, room.name,room.rent,room.id ]" > {{room.name}} </a> </td>
         <td>{{room.rent}}</td>
         <td>{{room.status}}</td>
         <td> {{room.occupant}} </td>
       </tr>
-      <tr *ngIf="editing" ><td>{{room.num}}</td><td><input [(ngModel)]="room.name" ></td><td><input [(ngModel)]="room.rent"> </td><td>{{room.status}}</td><td><input [(ngModel)]="room.occupant" > </td></tr>
+      <tr *ngIf="state.editing" >
+        <td>{{state.component.num}}</td>
+        <td><input [(ngModel)]="state.component.name" ></td>
+        <td><input [(ngModel)]="state.component.rent"> </td>
+        <td>{{state.component.status}}</td>
+        <td><input [(ngModel)]="state.component.occupant" > </td>
+      </tr>
     </table>
     <div style="text-align: center; padding-top: 5px;" >
-      <button style="text-align: center; align-self: center" (click)="addRoom(false)" >{{activeButtonText}}</button>
-      <button *ngIf="editing" style="text-align: center; align-self: center" (click)="addRoom(true)" >Done</button>
+      <span style="padding-right: 2em;" class="blink_me" >{{state.serverMessage}}</span>
+      <button style="text-align: center; align-self: center" (click)="addRoom(false)" >{{state.activeAddButtonText}}</button>
+      <button *ngIf="state.editing" style="text-align: center; align-self: center" (click)="addRoom(true)" >Save</button>
     </div>
   </div>
 
 </div>
+
+
+
+<label for="name">Name</label>
+
+<input type="text" id="name" class="form-control"  required minlength="4" maxlength="24"  name="name" [(ngModel)]="state.component.name"  #name="ngModel" >
+
+<div *ngIf="name.errors && (name.dirty || name.touched)"
+     class="alert alert-danger">
+  <div [hidden]="!name.errors.required">
+    Name is required
+  </div>
+  <div [hidden]="!name.errors.minlength">
+    Name must be at least 4 characters long.
+  </div>
+  <div [hidden]="!name.errors.maxlength">
+    Name cannot be more than 24 characters long.
+  </div>
+</div>
+

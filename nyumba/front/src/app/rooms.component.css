@@ -21,3 +21,10 @@
 #mainBody > table  tr  td input{
   width: 100%;
 }
+.blink_me {
+  animation: blinker 1s linear 5;
+}
+
+@keyframes blinker {
+  50% { opacity: 0; }
+}
