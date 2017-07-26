@@ -1,0 +1,14 @@
+<ion-tabs [selectedIndex]="mySelectedIndex">
+
+  <span *ngFor='let tab of tabs' >
+    <ion-tab [root]='tab.name' [tabTitle]='tab.title' [tabIcon]='tab.icon' ></ion-tab>
+  </span>
+  <!--
+  <ion-tab [root]="tab1Root" tabTitle="Apts" tabIcon="home"></ion-tab>
+  <ion-tab [root]="tab2Root" tabTitle="Payments" tabIcon="logo-usd"></ion-tab>
+  <ion-tab [root]="tab3Root" tabTitle="Speakers" tabIcon="contacts"></ion-tab>
+  <ion-tab [root]="tab4Root" tabTitle="Map" tabIcon="map"></ion-tab>
+  <ion-tab [root]="tab5Root" tabTitle="About" tabIcon="information-circle"></ion-tab>
+
+  -->
+</ion-tabs>

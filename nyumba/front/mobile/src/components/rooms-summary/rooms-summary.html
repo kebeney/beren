@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-navbar color="primary" [hideBackButton]="fns.editMode" >
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title >Building: {{apt.name}}</ion-title>
+    <ion-buttons end>
+      <button ion-button (click)="fns.editMode = !fns.editMode ">{{fns.editMode ? 'Done' : 'Edit'}}</button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-list >
+    <ion-item no-lines >
+      <div class="row" style="background-color: #f7f7f7;" >
+        <ion-header class="col center btm-brd" >Room</ion-header>
+        <ion-header class="col center btm-brd" >Bal</ion-header>
+      </div>
+    </ion-item>
+    <ion-item-group [reorder]="fns.editMode">
+      <ion-item-sliding *ngFor='let room of (rooms | async)' >
+        <ion-item >
+          <span class="row {{fns.editMode? '':'btm-brd'}}" >
+            <button class="col tr-bg" (click)="fns.editMode ? '' : tapped(room, 'occupants')" ><a >{{ room?.name }}</a></button>
+            <button class="col tr-bg" (click)="fns.editMode ? '' : tapped(room, 'payments')" >
+              <a> {{ room?.bills && room.bills.length > 0 && room.bills[room.bills.length -1 ].bal || 0 }}</a>
+            </button>
+          </span>
+        </ion-item>
+        <ion-item-options side="left" *ngIf="fns.editMode" >
+          <button ion-button color="danger" (click)="remove(room)">Delete</button>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-item-group>
+    <div class="center" *ngIf="fns.editMode" ><button ion-button round small (click)="add()" >Add Room</button></div>
+  </ion-list>
+</ion-content>

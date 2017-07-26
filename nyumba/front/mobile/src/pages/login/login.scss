@@ -1,0 +1,42 @@
+// Styles for all of the user pages:
+// Login, Signup, Support
+
+page-user {
+  .logo {
+    text-align: center;
+    img {
+      max-width: 150px;
+    }
+  }
+
+  .list {
+    margin-bottom: 0;
+  }
+}
+
+.ios, .md {
+
+  login-page {
+
+    //    ion-content {
+    //      background-color: powderblue;
+  }
+
+  scroll-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  ion-row {
+    align-items: center;
+    text-align: center;
+  }
+  .create-account {
+    color: #fff;
+    text-decoration: underline;
+    text-align: center;
+  }
+  .error-message{
+    color: red;
+  }
+}

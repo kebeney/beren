@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-navbar color="primary" [hideBackButton]="fns.editMode" >
+    <ion-title ><span class="pad-right">{{parent.name}}:</span>{{title || name+'s'}}</ion-title>
+    <ion-buttons end>
+      <button ion-button (click)="fns.editMode = !fns.editMode ">{{fns.editMode ? 'Done' : 'Edit'}}</button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+<ion-content>
+
+  <div class="center" >
+    <!-- <ion-spinner name="ios" *ngIf="(state | async ).target+'Pendings'" > </ion-spinner> -->
+  </div>
+
+  <ion-list >
+    <ion-item no-lines *ngIf="topInfo" [ngClass]="topInfoClass" >
+      <div class="row"><div class="col"> {{topInfo['key']}}</div> <div class="col">{{topInfo['value'] | async}}</div></div>
+    </ion-item>
+    <ion-item no-lines >
+      <div class="row btm-brd" >
+        <ion-header class="col" *ngFor="let entry of colsToShowArr" >{{labels[entry['value']]}}</ion-header>
+      </div>
+    </ion-item>
+    <ion-item-group [reorder]="fns.editMode" >
+      <ion-item-sliding *ngFor='let valObj of (valObjArr | async)' >
+        <ion-item >
+          <a class="row {{ fns.editMode ? '' : 'btm-brd' }}" (click)="fns.editMode?'':tapped(valObj)">
+            <span class="col" *ngFor="let entry of colsToShowArr" >{{entry['time']? ( valObj[entry['value']] | date:'dd-MM-yy' ) : valObj[entry['value']]}}</span>
+          </a>
+        </ion-item>
+        <ion-item-options side="left" *ngIf="fns.editMode && name !== 'Payment'" >
+          <button ion-button (click)="edit(valObj)">Edit Item</button>
+          <button ion-button color="danger" (click)="remove(valObj)">Delete</button>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-item-group>
+    <div class="center" *ngIf="fns.editMode" ><button ion-button round small (click)="add();" >Add {{name}}</button></div>
+  </ion-list>
+</ion-content>
