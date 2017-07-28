@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
-import {Events, IonicPage, Nav, Navbar, NavController, NavParams} from "ionic-angular";
+import {Events, Nav, Navbar, NavController, NavParams} from "ionic-angular";
 import {Store} from "@ngrx/store";
 import {Observable} from "rxjs/Observable";
 
@@ -11,7 +11,7 @@ import {LoginPage} from "../login/login";
 import {RoomsSummaryComponent} from "../../components/rooms-summary/rooms-summary";
 import {QuestionView} from "../../components/question-view/question-view";
 
-@IonicPage()
+//@IonicPage()
 @Component({
   selector: 'page-tenant-home',
   templateUrl: 'tenant-home.html',

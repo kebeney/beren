@@ -70,7 +70,7 @@ export class LoginPage {
         this.state.take(1).subscribe(s => {
           console.log('User before login request: '+JSON.stringify(s.users));
         });
-        this.fns.formOutput('/api/auth/login','',this.credentials,'User',usersPath);
+        this.fns.formOutput('/api/auth/login','',this.credentials,'User',usersPath, {tgt: 'login'});
         this.submitted = true;
         // this.cancelSubs();
         // this.usrLgnSubs = this.state.takeUntil(this.usrLgn).subscribe(d => {

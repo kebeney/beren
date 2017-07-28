@@ -43,10 +43,11 @@ export class FunctionsProvider{
   }
 //           ext,  parentId, data,     model, jsonPath
 //Example: '/add','apt.id', '$event', 'Room','[user,apt,room]'
-  formOutput(ext: string, parentId: string, data: any, model: string ,jsonPath: any []){
+  formOutput(ext: string, parentId: string, data: any, model: string ,jsonPath: any [], args?: any){
         //console.log(ext,parentId,data,model,jsonPath);
     //jsonPath = typeof jsonPath === 'undefined' ? [] : jsonPath;
     this.validatePath(jsonPath);
+    if(typeof args == 'undefined') args = {};
 
     if(model === 'Payment') {  let date = new Date(data['pmtDtEpochMilli']);  data['pmtDtEpochMilli'] = date.getTime(); }
 
@@ -54,7 +55,7 @@ export class FunctionsProvider{
     let uData = {'type': model, 'data': data};
     this.setAuthorization().then((r:boolean) => {
       if(r || ext.endsWith('login') || ext.endsWith('signup')){
-        this.store.dispatch({type: HTTP_CALL, payload: { data:uData, ext: ext, method: 'post', jsonPath: jsonPath}});
+        this.store.dispatch({type: HTTP_CALL, payload: { data:uData, ext: ext, method: 'post', jsonPath: jsonPath, tgt: args.tgt || ''}});
       }
       else{ this.events.publish("user:logout"); }
     });

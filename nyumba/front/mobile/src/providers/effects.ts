@@ -47,6 +47,11 @@ export class MainEffects {
       let result: Observable<any> =  call.switchMap(res => {
 
         this.fns.dismissLoader();
+        if(action.payload.tgt == 'login'){
+          this.events.publish('user:login');
+          console.log('Invoking login success');
+        }
+        console.log(JSON.stringify(action.payload));
         return Observable.of({ type: HTTP_SUCCESS, payload: { data: res.json(), jsonPath: action.payload.jsonPath , tgt: action.payload.tgt} })
 
       }).catch((error) => {
@@ -60,11 +65,12 @@ export class MainEffects {
       );
       return result;
     });
-    @Effect() login$ = this.actions$.ofType(HTTP_SUCCESS)
-      .switchMap((action: any) => {
-      //let data = action.payload.data;
-//TODO: Start from here. Figure out how to control navigation and set root to TabsPage after successful login
-      console.log('Action is: '+JSON.stringify(action.payload.data.kip));
-      return Observable.of();
-      })
+//     @Effect() login$ = this.actions$.ofType(HTTP_SUCCESS)
+//       .switchMap((action: any) => {
+//       //let data = action.payload.data;
+// //TODO: Start from here. Figure out how to control navigation and set root to TabsPage after successful login
+//         this.events.publish('user:login');
+//       console.log('Action is: '+JSON.stringify(action.payload.data.kip));
+//       return Observable.of();
+//       })
 }
