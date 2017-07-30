@@ -46,7 +46,8 @@ public class ObjectPersist {
         if (mappedObj instanceof ClientMsg){
             return ok(toJson(mappedObj));
         }else{
-            return ok(mapper.toJson(mappedObj,args));
+            return ok(mapper.toJson(new ClientMsg("loginSuccess",mappedObj),args));
+            //return ok(mapper.toJson(mappedObj,args));
         }
     }
 
@@ -64,6 +65,6 @@ public class ObjectPersist {
         logger.debug("User is: "+user);
 
         //If authenticator returns null, respond with unauthorized else respond with user data.
-        return user == null ? unauthorized(toJson(new ClientMsg("Invalid username or password"))) : ok(mapper.toJson(user, args));
+        return user == null ? unauthorized(toJson(new ClientMsg("Invalid username or password"))) : ok(mapper.toJson(new ClientMsg("loginSuccess",user),args));
     }
 }

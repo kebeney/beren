@@ -1,26 +1,11 @@
-<ion-header >
-  <ion-navbar color="primary" >
-    <button ion-button menuToggle [hidden]="fns.editMode" >
-      <ion-icon name="menu" ></ion-icon>
-    </button>
-    <ion-title>Properties</ion-title>
 
-    <ion-buttons end>
-      <button ion-button (click)="fns.editMode = !fns.editMode ">
-        <ion-icon *ngIf="!fns.editMode" ios="ios-search" md="md-search" ></ion-icon> &nbsp; <span>{{fns.editMode == true ? 'Done' : 'Search'}}</span>
-      </button>
-    </ion-buttons>
-
-  </ion-navbar>
-</ion-header>
-<ion-content>
 
   <!-----------------------------Start of Search Section------------------------------------------>
-  <ion-toolbar no-border-top *ngIf="fns.editMode" >
+  <ion-toolbar no-border-top *ngIf="editMode | async" >
     <ion-searchbar color="primary"  [(ngModel)]="queryText"  (ionInput)="searchUpdated.next(queryText)" placeholder="Search for properties">
     </ion-searchbar>
   </ion-toolbar>
-  <ion-list *ngIf="fns.editMode" >
+  <ion-list *ngIf="editMode | async" >
     <div *ngFor="let apt of (searchResults | async)" style="border-bottom: 1px solid gray;" >
       <button ion-item no-lines (click)="selectRoom(apt)" >
         <h3>{{apt.name}}</h3>
@@ -34,7 +19,7 @@
 
   <div *ngIf="(apts | async)?.length == 0" >First time here ? Click edit button above to create apartments</div>
 
-  <ion-list [reorder]="fns.editMode" >
+  <ion-list [reorder]="!(editMode | async)" >
     <span *ngFor="let apt of (apts | async)"  >
       <ion-item no-lines (click)="tapped(apt) " >
         <a class="row btm-brd">
@@ -45,5 +30,3 @@
     </span>
 
   </ion-list>
-
-</ion-content>

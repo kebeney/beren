@@ -13,12 +13,12 @@ import 'rxjs/Rx';
 import {Config} from "./config";
 import {FunctionsProvider} from "./functions";
 import {HTTP_CALL, HTTP_FAILED, HTTP_SUCCESS} from "../interfaces/consts";
-import {Events} from "ionic-angular";
+//import {Events} from "ionic-angular";
 
 @Injectable()
 export class MainEffects {
 
-    constructor( private http: Http, private actions$: Actions, private fns: FunctionsProvider, private config: Config, private events: Events) {
+    constructor( private http: Http, private actions$: Actions, private fns: FunctionsProvider, private config: Config) {
         this.actions$.observeOn(async);
     }
 
@@ -47,12 +47,8 @@ export class MainEffects {
       let result: Observable<any> =  call.switchMap(res => {
 
         this.fns.dismissLoader();
-        if(action.payload.tgt == 'login'){
-          this.events.publish('user:login');
-          console.log('Invoking login success');
-        }
-        console.log(JSON.stringify(action.payload));
-        return Observable.of({ type: HTTP_SUCCESS, payload: { data: res.json(), jsonPath: action.payload.jsonPath , tgt: action.payload.tgt} })
+        let tData = res.json();
+        return Observable.of({ type: HTTP_SUCCESS, payload: { data: tData.data, jsonPath: action.payload.jsonPath , tgt: action.payload.tgt, msg: tData.msg} })
 
       }).catch((error) => {
 

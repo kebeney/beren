@@ -52,6 +52,9 @@ import { RoomsSummaryComponent } from '../components/rooms-summary/rooms-summary
 import { ObserversProvider } from '../providers/observers';
 import {PaymentsPage} from "../pages/payments/payments";
 import {TenantHomePage} from "../pages/tenant-home/tenant-home";
+import { TenantSectionComponent } from '../components/tenant-section/tenant-section';
+import { LandlordSectionComponent } from '../components/landlord-section/landlord-section';
+import {HomePage} from "../pages/home/home";
 
 
 @NgModule({
@@ -72,6 +75,7 @@ import {TenantHomePage} from "../pages/tenant-home/tenant-home";
     TutorialPage,
     SupportPage,
     ApartmentPage,
+    HomePage,
 
     DynamicFormComponent,
     DynamicFormQuestionComponent,
@@ -80,7 +84,9 @@ import {TenantHomePage} from "../pages/tenant-home/tenant-home";
     QuestionView,
     RoomsSummaryComponent,
     PaymentsPage,
-    TenantHomePage
+    TenantHomePage,
+    TenantSectionComponent,
+    LandlordSectionComponent
   ],
   imports: [
     BrowserModule,
@@ -102,7 +108,8 @@ import {TenantHomePage} from "../pages/tenant-home/tenant-home";
         { component: SignupPage, name: 'SignupPage', segment: 'signup' },
         { component: ApartmentPage, name: 'ApartmentPage', segment: 'apts' },
         { component: TenantHomePage, name: 'tenantHomPage', segment: 'tenantHome'},
-        { component: PaymentsPage, name: 'PaymentsPage', segment: 'payments'}
+        { component: PaymentsPage, name: 'PaymentsPage', segment: 'payments'},
+        { component: HomePage, name: 'homePage', segment: 'home'}
       ]
     }),
     IonicStorageModule.forRoot(),
@@ -136,7 +143,8 @@ import {TenantHomePage} from "../pages/tenant-home/tenant-home";
     RoomsSummaryComponent,
     ApartmentPage,
     PaymentsPage,
-    TenantHomePage
+    TenantHomePage,
+    HomePage
   ],
   providers: [
     { provide: ErrorHandler, useClass: IonicErrorHandler },

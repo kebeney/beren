@@ -35,4 +35,12 @@ public class ClientMsg {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
 }

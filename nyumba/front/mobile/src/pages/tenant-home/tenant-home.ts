@@ -1,4 +1,7 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import {
+  ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output,
+  ViewChild
+} from "@angular/core";
 import {Events, Nav, Navbar, NavController, NavParams} from "ionic-angular";
 import {Store} from "@ngrx/store";
 import {Observable} from "rxjs/Observable";
@@ -28,6 +31,7 @@ export class TenantHomePage implements OnInit, OnDestroy{
   private aptSubs: Subject<void> = new Subject<void>();
   public searchUpdated: Subject<string> = new Subject<string>();
   @Output()  searchChangeEmitter: EventEmitter<any> = new EventEmitter();
+  @Input() editMode: Observable<boolean>
   searchResults: Observable<State>;
 
   constructor(public store: Store<State>, public navCtrl: NavController, public navParams: NavParams,
@@ -50,7 +54,7 @@ export class TenantHomePage implements OnInit, OnDestroy{
         }
 
       })
-    })
+    });
     this.searchResults = new Observable(observer => {
       this.state.takeUntil(this.aptSubs).subscribe((s:State) => {
         observer.next(s['searchResults']);

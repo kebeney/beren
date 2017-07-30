@@ -19,12 +19,14 @@ import { SupportPage } from '../pages/support/support';
 import { ConferenceData } from '../providers/conference-data';
 import { UserData } from '../providers/user-data';
 import {Store} from "@ngrx/store";
-import {Person, State} from "../interfaces/consts";
-import {ApartmentPage} from "../pages/apartment/apartment";
+//import {Person, State} from "../interfaces/consts";
+//import {ApartmentPage} from "../pages/apartment/apartment";
 import {ObserversProvider} from "../providers/observers";
 import {FunctionsProvider} from "../providers/functions";
-import {TenantHomePage} from "../pages/tenant-home/tenant-home";
+//import {TenantHomePage} from "../pages/tenant-home/tenant-home";
 import {SchedulePage} from "../pages/schedule/schedule";
+import {HomePage} from "../pages/home/home";
+import {State} from "../interfaces/consts";
 //import {PaymentsPage} from "../pages/payments/payments";
 
 export interface PageInterface {
@@ -51,7 +53,7 @@ export class ConferenceApp {
   // the left menu only works after login
   // the login page disables the left menu
   appPages: PageInterface[] = [
-    { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: ApartmentPage, index: 0, icon: 'home' },
+    { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: HomePage, index: 0, icon: 'home' },
 //    { title: 'Schedule', name: 'TabsPage', component: TabsPage, tabComponent: SchedulePage, index: 1, icon: 'calendar' },
 //    { title: 'Payment', name: 'TabsPage', component: TabsPage, tabComponent: PaymentsPage, index: 0, icon: 'logo-usd' },
     { title: 'Schedule', name: 'TabsPage', component: TabsPage, tabComponent: SchedulePage, index: 1, icon: 'contacts' },
@@ -87,9 +89,9 @@ export class ConferenceApp {
     this.storage.get('hasSeenTutorial')
       .then((hasSeenTutorial) => {
         if (hasSeenTutorial) {
-         // this.rootPage = TabsPage;
-          console.log('Setting rootPage to LoginPage...')
-          this.rootPage = LoginPage;
+          this.rootPage = TabsPage;
+          console.log('Setting rootPage to HomePage...')
+          //this.rootPage = HomePage;
         } else {
           this.rootPage = TutorialPage;
         }
@@ -107,19 +109,19 @@ export class ConferenceApp {
 
     this.listenToLoginEvents();
     //this.observers.register();
-    console.log('line 1');
-    this.store.select('componentReducer').takeLast(1).subscribe((s:State) => {
-      console.log('line 2');
-      let user:Person = s['users'][0];
-      console.log('line 3');
-      if(user.claims.role == 'landlord'){
-        console.log('line 4');
-        console.log('Setting index of appPages[0] to TenantHomePage');
-        this.appPages[0] = { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: TenantHomePage, index: 0, icon: 'home' } ;
-        console.log('line 5');
-      }
-    });
-    console.log('line 6');
+    // console.log('line 1');
+    // this.store.select('componentReducer').takeLast(1).subscribe((s:State) => {
+    //   console.log('line 2');
+    //   let user:Person = s['users'][0];
+    //   console.log('line 3');
+    //   if(user.claims.role == 'landlord'){
+    //     console.log('line 4');
+    //     console.log('Setting index of appPages[0] to TenantHomePage');
+    //     this.appPages[0] = { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: TenantHomePage, index: 0, icon: 'home' } ;
+    //     console.log('line 5');
+    //   }
+    // });
+    // console.log('line 6');
     // if(!this.fns.hasRole('landlord')){
     //
     // }
@@ -160,8 +162,8 @@ export class ConferenceApp {
 
   listenToLoginEvents() {
     this.events.subscribe('user:login', () => {
-      console.log('Login success...');
-      this.nav.setRoot(TabsPage)
+    //  console.log('Login success...');
+    //  this.nav.setRoot(TabsPage)
       this.enableMenu(true);
     });
 
@@ -171,9 +173,9 @@ export class ConferenceApp {
 
     this.events.subscribe('user:logout', () => {
       //Do not invoke this.userData.logout() here. It will go into an endless loop.
-      console.log('Logging out...');
+     // console.log('Logging out...');
       this.enableMenu(false);
-      this.nav.setRoot(LoginPage);
+     // this.nav.setRoot(LoginPage);
     });
   }
 

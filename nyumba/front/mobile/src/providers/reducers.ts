@@ -12,7 +12,8 @@ export const componentReducer = (state = new State(), action: any) => {
         case HTTP_SUCCESS: {
           console.log('Handling successful request...');
             //Handle only 200 ok responses here.
-          let data = action.payload.data;
+          let pl = action.payload;
+          let data = pl.data;
 
           if(typeof action.payload.tgt == 'string' && action.payload.tgt == 'search'){
             //replace search object and leave
@@ -23,6 +24,9 @@ export const componentReducer = (state = new State(), action: any) => {
           }
           if(typeof data['msg'] == 'string'){
             nextState['message'] = data['msg']
+          }
+          if( typeof pl.msg == 'string'){
+            nextState['msg'] = pl.msg;
           }
           return nextState;
         }

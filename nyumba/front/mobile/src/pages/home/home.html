@@ -1,0 +1,31 @@
+<ion-header >
+  <ion-navbar color="primary" >
+    <button ion-button menuToggle [hidden]="fns.editMode" >
+      <ion-icon name="menu" ></ion-icon>
+    </button>
+    <ion-title *ngIf="!loggedIn" >Login</ion-title>
+    <ion-title *ngIf="role == 'tenant'" >Properties</ion-title>
+    <ion-title *ngIf="role == 'landlord'" >Apartments</ion-title>
+
+    <ion-buttons *ngIf="loggedIn" end>
+      <button ion-button (click)="fns.editMode = !fns.editMode; editModeEvent.next(fns.editMode) ">
+        <span *ngIf="role == 'tenant'" >
+          <ion-icon *ngIf="!fns.editMode" ios="ios-search" md="md-search" ></ion-icon> &nbsp; <span>{{fns.editMode == true ? 'Done' : 'Search'}}</span>
+        </span>
+        <span *ngIf="role == 'landlord'" >
+          <ion-icon *ngIf="!fns.editMode" name="create" ></ion-icon> &nbsp; <span>{{fns.editMode == true ? 'Done' : ''}}</span>
+        </span>
+      </button>
+    </ion-buttons>
+
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <page-login *ngIf="!loggedIn" ></page-login>
+
+  <page-tenant-home *ngIf="role == 'tenant'" [editMode]="editMode" ></page-tenant-home>
+
+  <page-apartment *ngIf="role == 'landlord'" [editMode]="editMode" ></page-apartment>
+
+</ion-content>

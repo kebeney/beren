@@ -10,7 +10,7 @@ export interface UserOptions {
 export interface Details{id?: string}
 export interface QuizType{key?: string, label?: string, value?:string,required?:boolean,order:number,type?:string, hidden?: boolean, ctrlType: string};
 export interface LabelValueType{key?: string, label?: string, value?: string};
-export interface EditArgs{title: string, model: string,target:string,parentId:number,jsonPath:Array<{key:string,id:string}> }
+export interface EditArgs{title: string, model: string,target:string,parentId?:string,jsonPath:Array<{key:string,id:string}> }
 export interface Action {}
 
 export interface IOathProvider<T> {
@@ -23,6 +23,7 @@ export interface OAuthToken {
 
 export class State {
   //"message" message is set by HTTP_FAILED action in reducer and reset when user clicks to dismiss message.
+  msg: any;
   message: any = null;
   persist: boolean = false;
   searchResults: Array<any> = [];

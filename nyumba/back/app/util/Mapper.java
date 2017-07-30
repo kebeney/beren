@@ -125,7 +125,7 @@ public class Mapper {
         mapper.setFilterProvider(filters);
         String json = "{}" ;
         try {
-            json = mapper.writer(filters).writeValueAsString(value);
+            json = mapper.writer().writeValueAsString(value);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

@@ -15,7 +15,7 @@ import {Subscription} from "rxjs/Subscription";
 
 
 @Component({
-  selector: 'page-user',
+  selector: 'page-login',
   templateUrl: 'login.html'
 })
 export class LoginPage {

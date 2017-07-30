@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {Events, IonicPage, Nav, Navbar, NavController, NavParams} from "ionic-angular";
 import {Store} from "@ngrx/store";
 import {Observable} from "rxjs/Observable";
@@ -23,6 +23,7 @@ export class ApartmentPage implements OnInit, OnDestroy{
   state: Observable<State>;
   apts: Observable<any>;
   editArgs: EditArgs;
+  @Input() editMode: Observable<boolean>
   @ViewChild(Navbar) navBar: Navbar;
 //  @ViewChild(Nav) nav: Nav;
   private aptSubs: Subject<void> = new Subject<void>();
@@ -78,7 +79,6 @@ export class ApartmentPage implements OnInit, OnDestroy{
     }
   }
   tapped(apt: Apt){
-
     this.navCtrl.push(RoomsSummaryComponent, {
       user: this.user, apt: apt
     },this.fns.navOptionsForward);

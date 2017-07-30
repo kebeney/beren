@@ -1,0 +1,31 @@
+<!-----------------------------Start of Search Section------------------------------------------>
+<ion-toolbar no-border-top *ngIf="fns.editMode" >
+  <ion-searchbar color="primary"  [(ngModel)]="queryText"  (ionInput)="searchUpdated.next(queryText)" placeholder="Search for properties">
+  </ion-searchbar>
+</ion-toolbar>
+<ion-list *ngIf="fns.editMode" >
+  <div *ngFor="let apt of (searchResults | async)" style="border-bottom: 1px solid gray;" >
+    <button ion-item no-lines (click)="selectRoom(apt)" >
+      <h3>{{apt.name}}</h3>
+      <p>{{apt.street}} &mdash; {{apt.city}}, {{apt.county}}</p>
+    </button>
+  </div>
+
+</ion-list>
+<!-----------------------------End of Search Section------------------------------------------->
+
+
+<div *ngIf="(apts | async)?.length == 0" >First time here ? Click edit button above to create apartments</div>
+
+<ion-list [reorder]="fns.editMode" >
+    <span *ngFor="let apt of (apts | async)"  >
+      <ion-item no-lines (click)="tapped(apt) " >
+        <a class="row btm-brd">
+          <span class="col left">{{apt?.name}}</span>
+          <span class="col right">{{ apt?.rooms?.length || 0}} Rooms</span>
+        </a>
+      </ion-item>
+    </span>
+
+</ion-list>
+
