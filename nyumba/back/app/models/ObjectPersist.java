@@ -65,6 +65,6 @@ public class ObjectPersist {
         logger.debug("User is: "+user);
 
         //If authenticator returns null, respond with unauthorized else respond with user data.
-        return user == null ? unauthorized(toJson(new ClientMsg("Invalid username or password"))) : ok(mapper.toJson(new ClientMsg("loginSuccess",user),args));
+        return user == null ? unauthorized("Invalid username or password") : ok(mapper.toJson(new ClientMsg("loginSuccess",user),args));
     }
 }

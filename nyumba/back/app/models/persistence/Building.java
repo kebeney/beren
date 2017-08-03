@@ -57,6 +57,11 @@ public class Building {
     @ManyToMany(targetEntity = Users.class, mappedBy = "apts")
     Set<Users> users;
 
+    @Override
+    public boolean equals(Object other){
+        return other instanceof Building && ((Building)other).id == this.id;
+    }
+
     public Long getId() {
         return id;
     }
@@ -131,6 +136,11 @@ public class Building {
             this.users = new HashSet<>();
         }
         this.users.add(user);
+    }
+    public void removeUser(Users user){
+        if(this.users != null){
+            this.users.remove(user);
+        }
     }
 
     public Set<Room> getSelectedRooms() {

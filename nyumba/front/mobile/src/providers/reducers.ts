@@ -1,8 +1,7 @@
 import {
   HTTP_CALL, HTTP_FAILED,
   HTTP_SUCCESS,
-  LOGOUT, RESET_MESSAGE, RESET_PERSIST, RESTORE_USER,
-  SHOW_MESSAGE,
+  LOGOUT, RESET_MESSAGE, RESTORE_USER, SEND_MESSAGE, SET_EDIT_MODE,
   State
 } from "../interfaces/consts";
 
@@ -13,17 +12,18 @@ export const componentReducer = (state = new State(), action: any) => {
           console.log('Handling successful request...');
             //Handle only 200 ok responses here.
           let pl = action.payload;
-          let data = pl.data;
+          let data = pl.data; console.log('data is: ',data);
 
           if(typeof action.payload.tgt == 'string' && action.payload.tgt == 'search'){
             //replace search object and leave
             nextState['searchResults'] = data;
-          }else{
+          }else if(typeof data !== 'undefined' && data !== null){
             findAndUpdateArray(action.payload.jsonPath,nextState,action.payload.data);
             nextState['persist'] = true;
           }
-          if(typeof data['msg'] == 'string'){
-            nextState['message'] = data['msg']
+          //TODO: merge these two into one. Figure out between data['msg'] and pl.msg . Look at message sending from backend.
+          if(data !== null && data && typeof data['msg'] == 'string'){
+            nextState['msg'] = data['msg']
           }
           if( typeof pl.msg == 'string'){
             nextState['msg'] = pl.msg;
@@ -42,34 +42,37 @@ export const componentReducer = (state = new State(), action: any) => {
               findAndUpdateArray(action.payload.jsonPath,nextState,action.payload.data);
               nextState['persist'] = true;
             }
-            else if(error['msg'] != undefined ){ nextState['message'] = error['msg'] }
+            else if(error['msg'] != undefined ){ nextState['msg'] = error['msg'] }
             return nextState;
         }
         case RESET_MESSAGE: {
           console.log('Resetting message to null...');
-            nextState['message'] = null;
+            nextState['msg'] = null;
             return nextState;
         }
-        case SHOW_MESSAGE: {
-          nextState['message'] = action.payload.message;
+        case SEND_MESSAGE: {
+          //Send message to whoever is listening for this message
+          nextState['msg'] = action.payload.msg;
           return nextState;
-        }
-        case RESET_PERSIST: {
-          console.log('Resetting persist...');
-          nextState['persist'] = false;
-          return nextState;
-        }
+      }
         case LOGOUT: {
+          //This action should be invoked only by the observable in the home constructor.
+          //To trigger the login/logout process, dispatch a SEND_MESSAGE action with msg: 'logout' or msg: 'loginSuccess';
           console.log('Logging out in reducers...');
           //TODO: And invalidate security token at this point
+          nextState.editMode = false;
           nextState['users'] = [];
-          nextState['message'] = null;
+          nextState['msg'] = 'logoutComplete';
           return nextState;
         }
-      case RESTORE_USER: {
-        nextState['users'] = action.payload.user;
-        return nextState;
-      }
+        case RESTORE_USER: {
+          nextState.users[0] = action.payload.user;
+          return nextState;
+        }
+        case SET_EDIT_MODE: {
+          nextState.editMode = action.payload.editMode;
+          return nextState;
+        }
         //always have default return of previous state when action is not relevant
         default:
             return state;

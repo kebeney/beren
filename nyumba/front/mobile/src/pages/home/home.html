@@ -8,12 +8,12 @@
     <ion-title *ngIf="role == 'landlord'" >Apartments</ion-title>
 
     <ion-buttons *ngIf="loggedIn" end>
-      <button ion-button (click)="fns.editMode = !fns.editMode; editModeEvent.next(fns.editMode) ">
+      <button ion-button (click)="fns.flipEditMode();">
         <span *ngIf="role == 'tenant'" >
-          <ion-icon *ngIf="!fns.editMode" ios="ios-search" md="md-search" ></ion-icon> &nbsp; <span>{{fns.editMode == true ? 'Done' : 'Search'}}</span>
+          <ion-icon *ngIf="!fns.getEditMode()" ios="ios-search" md="md-search" ></ion-icon> &nbsp; <span>{{fns.getEditMode() ? 'Done' : 'Search'}}</span>
         </span>
         <span *ngIf="role == 'landlord'" >
-          <ion-icon *ngIf="!fns.editMode" name="create" ></ion-icon> &nbsp; <span>{{fns.editMode == true ? 'Done' : ''}}</span>
+          <ion-icon *ngIf="!fns.getEditMode()" name="create" ></ion-icon> &nbsp; <span>{{fns.getEditMode() ? 'Done' : ''}}</span>
         </span>
       </button>
     </ion-buttons>
@@ -24,8 +24,8 @@
 <ion-content>
   <page-login *ngIf="!loggedIn" ></page-login>
 
-  <page-tenant-home *ngIf="role == 'tenant'" [editMode]="editMode" ></page-tenant-home>
+  <page-tenant-home *ngIf="role == 'tenant'" [editMode]="fns.editMode" ></page-tenant-home>
 
-  <page-apartment *ngIf="role == 'landlord'" [editMode]="editMode" ></page-apartment>
+  <page-apartment *ngIf="role == 'landlord'" [editMode]="fns.editMode" ></page-apartment>
 
 </ion-content>

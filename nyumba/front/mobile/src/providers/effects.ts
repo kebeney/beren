@@ -17,6 +17,7 @@ import {HTTP_CALL, HTTP_FAILED, HTTP_SUCCESS} from "../interfaces/consts";
 
 @Injectable()
 export class MainEffects {
+  private knownCode: Array<number> = [400,401];
 
     constructor( private http: Http, private actions$: Actions, private fns: FunctionsProvider, private config: Config) {
         this.actions$.observeOn(async);
@@ -48,25 +49,26 @@ export class MainEffects {
 
         this.fns.dismissLoader();
         let tData = res.json();
+        console.log(tData);
         return Observable.of({ type: HTTP_SUCCESS, payload: { data: tData.data, jsonPath: action.payload.jsonPath , tgt: action.payload.tgt, msg: tData.msg} })
 
       }).catch((error) => {
 
         this.fns.dismissLoader();
 
-        let data = error.status == 0 ? {msg: 'Server Unavailable. Please try later!'} : JSON.parse(error._body );
+        //console.log('Error code: ',error.status);
+        //console.log('Error msg: ',error.statusText);
+        //console.log('Error body: ',error._body);
+        //let errBdy = error._body;
+        //console.log(errBdy == 'tokenExp');
+        console.log(error);
+        let index = this.knownCode.indexOf(error.status);
+        console.log('Index is:',index);
+        let data = (this.knownCode.indexOf(error.status) && error._body ) ? {msg: error._body } : {msg: 'Server Error Please try later!'};
         //return Observable.of({ type: SAVE_TO_BACKEND_FAILED, payload: { data: JSON.parse(error._body), jsonPath: action.payload.jsonPath }}) }
-        return Observable.of({ type: HTTP_FAILED, payload: { data: data, jsonPath: action.payload.jsonPath , tgt: action.payload.tgt} }) }
+        return Observable.of({ type: HTTP_FAILED, payload: { data: data, jsonPath: action.payload.jsonPath , tgt: action.payload.tgt, msg: data.msg} }) }
 
       );
       return result;
     });
-//     @Effect() login$ = this.actions$.ofType(HTTP_SUCCESS)
-//       .switchMap((action: any) => {
-//       //let data = action.payload.data;
-// //TODO: Start from here. Figure out how to control navigation and set root to TabsPage after successful login
-//         this.events.publish('user:login');
-//       console.log('Action is: '+JSON.stringify(action.payload.data.kip));
-//       return Observable.of();
-//       })
 }

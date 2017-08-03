@@ -23,7 +23,7 @@ export class ApartmentPage implements OnInit, OnDestroy{
   state: Observable<State>;
   apts: Observable<any>;
   editArgs: EditArgs;
-  @Input() editMode: Observable<boolean>
+  @Input() editMode: Observable<boolean>;
   @ViewChild(Navbar) navBar: Navbar;
 //  @ViewChild(Nav) nav: Nav;
   private aptSubs: Subject<void> = new Subject<void>();
@@ -31,7 +31,7 @@ export class ApartmentPage implements OnInit, OnDestroy{
   constructor(public store: Store<State>, public navCtrl: NavController, public navParams: NavParams,
               public fns: FunctionsProvider, public userData: UserData, public events: Events, public nav: Nav){
     this.state = store.select('componentReducer');
-    this.add
+   // this.add
   }
   ngOnInit(){
     this.apts = new Observable(observer => {
@@ -48,10 +48,18 @@ export class ApartmentPage implements OnInit, OnDestroy{
     })
   }
   add(){
+    console.log('Adding apartment!');
+    console.log(this.navCtrl.length());
+    console.log(this.navCtrl.first().id);
     this.navCtrl.push(QuestionView,{
       questions: this.fns.getQuiz({tgt:'apts',val:null,fill:false}), title: 'New Apartment', model: 'Building', target: 'apts', parentId: this.user.id,
       jsonPath: this.fns.mapPathId(aptsPath,this.user,null,null), urlExt: '/add'
-    },this.fns.navOptionsForward)
+    },this.fns.navOptionsForward).then(u => {
+      console.log('Fulfilled',u);
+    }).catch(reason => {
+      console.log('Rejected:',reason);
+    });
+    console.log('End of function...');
   }
   edit(valObj: any){
     this.navCtrl.push(QuestionView,{

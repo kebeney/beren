@@ -10,6 +10,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import security.ErenValidator;
 import util.Args;
+import util.ClientMsg;
 import util.Mapper;
 import util.Types;
 
@@ -66,7 +67,7 @@ public class ObjectRetrieve {
 //                }
 //            }
 //        }
-        return ok(mapper.toJson(result,args));
+        return ok(mapper.toJson(new ClientMsg("",result),args));
     }
 
     public Result applySearch(Http.Request req, String searchString, Map<Args, Object> args){

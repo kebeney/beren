@@ -2,6 +2,7 @@ package models.persistence;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import models.persistence.person.Users;
 
@@ -13,8 +14,9 @@ import java.math.BigDecimal;
  * Created by kip on 5/10/17.
  */
 
+//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+//@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class Bill implements Comparable<Bill> {
 
     @Id

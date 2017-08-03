@@ -8,6 +8,7 @@ import models.persistence.person.Users;
 import play.Configuration;
 import play.Logger;
 import play.db.jpa.JPAApi;
+import play.mvc.Http;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import play.mvc.Security;
@@ -60,8 +61,8 @@ public class Secured extends Security.Authenticator{
 
     @Override
     public Result onUnauthorized(Context ctx) {
-        logger.debug("Returning badRequest to: "+ctx.request().headers().get("Origin")[0]);
-        return badRequest(toJson(new ClientMsg("tokenExp")));
+        logger.debug("Returning unAuthorized to: "+ctx.request().headers().get("Origin")[0]);
+        return unauthorized("tokenExp");
     }
     public String getUserName(String jwt){
         JsonNode body = this.getAuthorizationHeader(jwt);

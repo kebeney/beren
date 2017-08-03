@@ -14,7 +14,7 @@ public class ClientMsg {
         this.msg = msg; this.id = id;
     }
     public ClientMsg(String msg){
-        this.msg = msg; this.id = null;
+        this.msg = msg;
     }
     public ClientMsg(String msg, Object data){
         this.msg = msg; this.data = data;

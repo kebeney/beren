@@ -23,6 +23,7 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   private unsub: Subject<void> = new Subject<void>();
   private childUnsub: Subject<void> = new Subject<void>();
   private prsnSubs: Subscription;
+  private prsnPulled = false;
 
 //  sub: any
   @ViewChild(Navbar) navBar: Navbar;
@@ -35,7 +36,7 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   ngOnInit(){
     this.rooms = new Observable(observer => {
       this.state.takeUntil(this.unsub).subscribe(s => {
-        let user: Person = s['users'][0]; console.log('User is undefined');
+        let user: Person = s['users'][0];
         if(typeof s['users'][0] !== 'undefined'){
           let apts: Apt[] = user['apts'] || [];
           let apt: Apt = apts.find((apt:Apt) => apt.id === this.apt.id) || {rooms: []};
@@ -93,16 +94,6 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
         },this.fns.navOptionsForward);
         break;
       }
-      // case 'rooms': {
-      //   this.childUnsub.complete();
-      //   this.childUnsub = new Subject<void>();
-      //   this.navCtrl.push(GenericView,{
-      //     parent: this.apt, name: 'Room', target: 'rooms', colsToShowArr: [{value:'name', time:false},{value:'rent', time:false}],
-      //     arrayVals: this.getArrValsObs(this.fns.mapPathId(roomsPath,this.user,this.apt,null),this.user),
-      //     jsonPath: this.fns.mapPathId(roomsPath,this.user,this.apt,null)
-      //   },this.fns.navOptionsForward);
-      //   break;
-      // }
     }
   }
   private getBalanceObservable(room:Room): Observable<State> {
@@ -119,20 +110,28 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
     user = null; //console.log(user);
     return new Observable(observer => {
       this.state.takeUntil(this.unsub || this.childUnsub).subscribe((s:any) => {
-        observer.next(this.getArray(jsonpath,s.users[0]));
+        if(s.users.length > 0){
+          observer.next(this.getArray(jsonpath,s.users[0]));
+        }
       })
     })
   }
   //This is a special case function to listen and get the new list of bills when a new tenant is added to an empty room.
   private getPrsnListListener(roomArg:any): Subscription {
     return this.state.takeUntil(this.unsub).subscribe((s:State) => {
+
       let user = s.users[0];
       let apt = this.fns.findObj(s['users'], this.apt.id, 'apts');
       let _room = this.fns.findObj(s['users'], roomArg.id, 'rooms');
-      console.log('apt is: '+apt); console.log('room is: '+_room); console.log('length is: '+_room['personList'].length);
-      if( apt != null && _room != null && _room['personList'].length === 1){ console.log('step 3')
-        console.log('triggered the get...')
-        this.fns.httpGet('get/'+billModel+'/'+_room.id, this.fns.mapPathId(paymentsPath,user,apt,_room), 'user');
+
+      //console.log('apt is: '+apt);
+      //console.log('room is: '+_room);
+      if( apt != null && _room != null && _room['personList'].length === 1 && !this.prsnPulled){
+        this.prsnPulled  = true;
+        console.log('length is: '+_room['personList'].length);
+        console.log('step 3');
+        console.log('triggered the get...');
+        this.fns.httpGet('get/'+billModel+'/'+_room.id, this.fns.mapPathId(paymentsPath,user,apt,_room), 'bills');
         this.prsnSubs.unsubscribe();
       }
     });

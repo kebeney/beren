@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-import { AlertController, NavController } from 'ionic-angular';
+import {AlertController, Events, NavController} from 'ionic-angular';
 
 import { UserData } from '../../providers/user-data';
 
@@ -12,7 +12,7 @@ import { UserData } from '../../providers/user-data';
 export class AccountPage {
   username: string;
 
-  constructor(public alertCtrl: AlertController, public nav: NavController, public userData: UserData) {
+  constructor(public alertCtrl: AlertController, public nav: NavController, public userData: UserData, public events: Events) {
 
   }
 
@@ -61,7 +61,7 @@ export class AccountPage {
   }
 
   logout() {
-    this.userData.logout();
+    this.events.publish('home:logout');
     this.nav.setRoot('LoginPage');
   }
 

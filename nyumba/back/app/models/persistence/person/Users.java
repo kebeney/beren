@@ -101,6 +101,11 @@ public class Users extends Tenant {
         }
         this.apts.add(apt);
     }
+    public void removeApt(Building apt){
+        if(this.apts != null){
+            this.apts.remove(apt);
+        }
+    }
 
     public void setApts(Set<Building> apts) {
         this.apts = apts;

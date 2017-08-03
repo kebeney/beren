@@ -9,25 +9,18 @@ import { AboutPage } from '../pages/about/about';
 import { AccountPage } from '../pages/account/account';
 import { LoginPage } from '../pages/login/login';
 import { MapPage } from '../pages/map/map';
-//import { SignupPage } from '../pages/signup/signup';
 import { TabsPage } from '../pages/tabs/tabs';
 import { TutorialPage } from '../pages/tutorial/tutorial';
-//import { SchedulePage } from '../pages/schedule/schedule';
-//import { SpeakerListPage } from '../pages/speaker-list/speaker-list';
 import { SupportPage } from '../pages/support/support';
 
 import { ConferenceData } from '../providers/conference-data';
 import { UserData } from '../providers/user-data';
 import {Store} from "@ngrx/store";
-//import {Person, State} from "../interfaces/consts";
-//import {ApartmentPage} from "../pages/apartment/apartment";
-import {ObserversProvider} from "../providers/observers";
 import {FunctionsProvider} from "../providers/functions";
-//import {TenantHomePage} from "../pages/tenant-home/tenant-home";
 import {SchedulePage} from "../pages/schedule/schedule";
 import {HomePage} from "../pages/home/home";
-import {State} from "../interfaces/consts";
-//import {PaymentsPage} from "../pages/payments/payments";
+import {SEND_MESSAGE, State} from "../interfaces/consts";
+import {Observable} from "rxjs/Observable";
 
 export interface PageInterface {
   title: string;
@@ -47,7 +40,8 @@ export class ConferenceApp {
   // the root nav is a child of the root app component
   // @ViewChild(Nav) gets a reference to the app's root nav
   @ViewChild(Nav) nav: Nav;
-  public isLoggedIn: boolean = false;
+  public state: Observable<State>;
+  public isLoggedIn: Observable<boolean>;
 
   // List of pages that can be navigated to from the left menu
   // the left menu only works after login
@@ -66,7 +60,8 @@ export class ConferenceApp {
     { title: 'Logout', name: 'TabsPage', component: TabsPage, icon: 'log-out', logsOut: true, tabComponent: LoginPage}
   ];
   loggedOutPages: PageInterface[] = [
-    { title: 'Login', name: 'LoginPage', component: LoginPage, icon: 'log-in' },
+    //{ title: 'Login', name: 'LoginPage', component: TabsPage, icon: 'log-in', tabComponent: HomePage },
+    { title: 'Login', name: 'TabsPage', component: TabsPage, tabComponent: HomePage, icon: 'log-in' },
     { title: 'Support', name: 'SupportPage', component: SupportPage, icon: 'help' }
 //    { title: 'Signup', name: 'SignupPage', component: SignupPage, icon: 'person-add' }
   ];
@@ -81,9 +76,9 @@ export class ConferenceApp {
     public storage: Storage,
     public splashScreen: SplashScreen,
     public store: Store<State>,
-    public observers: ObserversProvider,
     public fns: FunctionsProvider
   ) {
+    this.state = this.store.select('componentReducer');
 
     // Check if the user has already seen the tutorial
     this.storage.get('hasSeenTutorial')
@@ -101,30 +96,7 @@ export class ConferenceApp {
     // load the conference data
     confData.load();
 
-    // decide which menu items should be hidden by current login status stored in local storage
-    this.userData.hasLoggedIn().then((hasLoggedIn) => {
-      this.enableMenu(hasLoggedIn === true);
-    });
-    this.enableMenu(true);
-
     this.listenToLoginEvents();
-    //this.observers.register();
-    // console.log('line 1');
-    // this.store.select('componentReducer').takeLast(1).subscribe((s:State) => {
-    //   console.log('line 2');
-    //   let user:Person = s['users'][0];
-    //   console.log('line 3');
-    //   if(user.claims.role == 'landlord'){
-    //     console.log('line 4');
-    //     console.log('Setting index of appPages[0] to TenantHomePage');
-    //     this.appPages[0] = { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: TenantHomePage, index: 0, icon: 'home' } ;
-    //     console.log('line 5');
-    //   }
-    // });
-    // console.log('line 6');
-    // if(!this.fns.hasRole('landlord')){
-    //
-    // }
   }
 
   openPage(page: PageInterface) {
@@ -139,7 +111,11 @@ export class ConferenceApp {
     // If we are already on tabs just change the selected tab
     // don't setRoot again, this maintains the history stack of the
     // tabs even if changing them from the menu
-    if (this.nav.getActiveChildNav() && page.index != undefined && !page.logsOut) {
+    if(page.logsOut){
+      //logout button explicityly clicked.dispatch the logout message
+      this.store.dispatch({type: SEND_MESSAGE, payload: {msg: 'logout'}})
+    }
+    else if (this.nav.getActiveChildNav() && page.index != undefined) {
       this.nav.getActiveChildNav().select(page.index);
     // Set the root of the nav with params if it's a tab index
   } else {
@@ -148,12 +124,6 @@ export class ConferenceApp {
         console.log(`Didn't set nav root: ${err}`);
       });
     }
-
-    if (page.logsOut === true) {
-      // Give the menu time to close before changing to logged out
-      console.log('Invoking userData.logout()');
-      this.userData.logout();
-    }
   }
 
   openTutorial() {
@@ -161,28 +131,15 @@ export class ConferenceApp {
   }
 
   listenToLoginEvents() {
-    this.events.subscribe('user:login', () => {
-    //  console.log('Login success...');
-    //  this.nav.setRoot(TabsPage)
-      this.enableMenu(true);
+    this.isLoggedIn = new Observable(observer => {
+      this.state.subscribe(s => {
+        if(s['msg'] != null && s['msg'] == 'loginComplete'){
+          observer.next(true);
+        }else if(s['msg'] != null && s['msg'] == 'logoutComplete'){
+          observer.next(false);
+        }
+      });
     });
-
-    this.events.subscribe('user:signup', () => {
-      this.enableMenu(true);
-    });
-
-    this.events.subscribe('user:logout', () => {
-      //Do not invoke this.userData.logout() here. It will go into an endless loop.
-     // console.log('Logging out...');
-      this.enableMenu(false);
-     // this.nav.setRoot(LoginPage);
-    });
-  }
-
-  enableMenu(loggedIn: boolean) {
-  this.isLoggedIn = loggedIn
-  //  this.menu.enable(loggedIn, 'loggedInMenu');
-  //  this.menu.enable(!loggedIn, 'loggedOutMenu');
   }
 
   platformReady() {

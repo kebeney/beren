@@ -49,7 +49,6 @@ import {ApartmentPage} from "../pages/apartment/apartment";
 import {DynamicFormComponent} from "../providers/questions/dynamic-form.component";
 import {DynamicFormQuestionComponent} from "../providers/questions/dynamic-form-question.component";
 import { RoomsSummaryComponent } from '../components/rooms-summary/rooms-summary';
-import { ObserversProvider } from '../providers/observers';
 import {PaymentsPage} from "../pages/payments/payments";
 import {TenantHomePage} from "../pages/tenant-home/tenant-home";
 import { TenantSectionComponent } from '../components/tenant-section/tenant-section';
@@ -160,8 +159,7 @@ import {HomePage} from "../pages/home/home";
     Oauth,
     AuthProvider,
     FunctionsProvider,
-    QuestionsProvider,
-    ObserversProvider
+    QuestionsProvider
   ]
 })
 export class AppModule { }

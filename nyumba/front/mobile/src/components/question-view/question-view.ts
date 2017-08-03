@@ -18,7 +18,7 @@ export class QuestionView {
   private questions: QuestionBase<any>[];
   private uniqId: string;
 
-  constructor(navParams: NavParams, private sf: FunctionsProvider, private navCtrl: NavController){
+  constructor(navParams: NavParams, public fns: FunctionsProvider, private navCtrl: NavController){
     this.questions = navParams.get('questions');      this.validate(this.questions,'questions');
     this.title = navParams.get('title');              this.validate(this.title, 'title');
     this.model = navParams.get('model');              this.validate(this.model, 'model');
@@ -36,11 +36,12 @@ export class QuestionView {
   }
   cancel(){
 
-    this.navCtrl.pop(this.sf.navOptionsBack);
+    this.navCtrl.pop(this.fns.navOptionsBack);
 
     //So far only one uniqueId is being used which is uniqId: 'tenant-home' from tenant-home.ts file.
     if(this.uniqId != null && this.uniqId == 'tenant-home'){
-      this.sf.editMode = false;
+      //this.fns.editMode = false;
+      this.fns.setEditMode(false);
     }
   }
   validate(arg:any,name:any){

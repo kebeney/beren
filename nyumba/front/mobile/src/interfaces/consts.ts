@@ -24,7 +24,9 @@ export interface OAuthToken {
 export class State {
   //"message" message is set by HTTP_FAILED action in reducer and reset when user clicks to dismiss message.
   msg: any;
-  message: any = null;
+  displayMsg: string;
+  editMode: boolean = false;
+//  message: any = null;
   persist: boolean = false;
   searchResults: Array<any> = [];
   //Don't put any default value inside users. It will mess things up. Just leave it as empty array.
@@ -43,16 +45,11 @@ export const HTTP_SUCCESS = 'HTTP_SUCCESS';
 export const HTTP_FAILED = 'HTTP_FAILED';
 
 export const RESET_MESSAGE = 'RESET_MESSAGE';
-export const RESET_PERSIST = 'RESET_PERSIST';
+export const SEND_MESSAGE = 'SEND_MESSAGE';
 
-//export const SAVE_TO_BACKEND = 'SAVE_TO_BACKEND';
-//export const SAVE_TO_BACKEND_SUCCESS = 'SAVE_TO_BACKEND_SUCCESS';
-//export const SAVE_TO_BACKEND_FAILED = 'SAVE_TO_BACKEND_FAILED';
-
-
-export const SHOW_MESSAGE = 'SHOW_MESSAGE';
 export const LOGOUT = 'LOGOUT';
 export const RESTORE_USER = 'RESTORE_USER';
+export const SET_EDIT_MODE = 'SET_EDIT_MODE';
 
 export const aptModel = 'Building';
 export const roomModel = 'Room';
@@ -61,26 +58,4 @@ export const tenantModel = 'Tenant';
 export const userModel = 'User';
 
 export const localStoredUser = 'localStoredUser';
-export const localSelectedApts = 'localSelectedApts'
-
-export const romDtTgt = 'bills';
-
-export interface GlobalPageInterface {
-  title: string;
-  name: string;
-  component?: any;
-  icon: string;
-  logsOut?: boolean;
-  index?: number;
-  tabName?: string;
-  tabComponent?: any;
-}
-
-export const AppWidePages: GlobalPageInterface[] = [
-  { title: 'Home', name: 'TabsPage', index: 0, icon: 'home', logsOut: true },
-  { title: 'Schedule', name: 'TabsPage', index: 1, icon: 'calendar', logsOut: true },
-  { title: 'Speakers', name: 'TabsPage', index: 2, icon: 'contacts' , logsOut: true},
-  { title: 'Map', name: 'TabsPage', index: 3, icon: 'map' , logsOut: true},
-  { title: 'About', name: 'TabsPage', index: 4, icon: 'information-circle', logsOut: true }
-];
-export const appNavHistory: Array<any> = [];
+export const localSelectedApts = 'localSelectedApts';

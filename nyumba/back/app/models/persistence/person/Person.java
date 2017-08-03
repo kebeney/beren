@@ -39,6 +39,11 @@ public abstract class Person {
         this.id = id;
     }
 
+    @Override
+    public boolean equals(Object other){
+        return (other instanceof  Person) && this.id == ((Person)other).id;
+    }
+
     public Long getParentId() {
         return parentId;
     }

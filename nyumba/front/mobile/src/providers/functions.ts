@@ -1,10 +1,9 @@
-import {HTTP_CALL, QuizPayLType, RESET_MESSAGE, State} from "../interfaces/consts";
+import {HTTP_CALL, QuizPayLType, SET_EDIT_MODE, State} from "../interfaces/consts";
 import {Store} from "@ngrx/store";
 import {Injectable} from "@angular/core";
 import {AlertController, Events, Loading, LoadingController} from "ionic-angular";
 import {Subject} from "rxjs/Subject";
 import {QuestionsProvider} from "./questions/questions";
-import {UserData} from "./user-data";
 import {Headers} from "@angular/http";
 import {Observable} from "rxjs/Observable";
 
@@ -13,33 +12,18 @@ export class FunctionsProvider{
 
   private headers = new Headers({'Content-type': 'application/json'});
 //  public user: Person;
-  public editMode = false;
+ // public editMode: Observable<boolean>;
+  //public editModeSub: Subject<boolean> = new Subject();
   private loading: Loading;
   public navOptionsBack =    {animate: true, animation: 'ios-transition',duration: 300, direction: 'back',    easing: 'ease-out' };
   public navOptionsForward = {animate: true, animation: 'ios-transition',duration: 300, direction: 'forward', easing: 'ease-out' };
   private msgSubs: Subject<void> = new Subject<void>();
-  private showing: boolean = false;
   private state: Observable<State> ;
 
   constructor(private store: Store<State>, private questions: QuestionsProvider, private ldgCtrl: LoadingController,
-              private altCtrl: AlertController, private usrData: UserData, private events: Events){
+              private altCtrl: AlertController, private events: Events){
     this.state = store.select('componentReducer');
-
-    this.state.takeUntil(this.msgSubs).subscribe( (s: State): void => {
-      if(s.message !== null){
-        if(s.message == 'tokenExp'){
-          //Do not invoke events.publish('user:logout') here. It already gets invoked by below statement.
-          this.usrData.logout();
-        }else if(!this.showing){
-          this.showing = true;
-          //Present message and wait for user to click ok.
-          this.altCtrl.create({title: '', message: s['message'], buttons: [{text: 'Dismiss',handler: () => {
-            this.showing = false;
-            this.store.dispatch({type: RESET_MESSAGE})
-          }}]}).present();
-        }
-      }
-    });
+    //this.editMode = this.editModeSub.asObservable();
   }
 //           ext,  parentId, data,     model, jsonPath
 //Example: '/add','apt.id', '$event', 'Room','[user,apt,room]'
@@ -53,50 +37,52 @@ export class FunctionsProvider{
 
     data['parentId'] = parentId;
     let uData = {'type': model, 'data': data};
-    this.setAuthorization().then((r:boolean) => {
-      if(r || ext.endsWith('login') || ext.endsWith('signup')){
+    this.setAuthorization().then((authorized:boolean) => {
+      if( authorized || ext.endsWith('login') || ext.endsWith('signup')){
+        console.log('Dispatching HTTP_CALL');
         this.store.dispatch({type: HTTP_CALL, payload: { data:uData, ext: ext, method: 'post', jsonPath: jsonPath, tgt: args.tgt || ''}});
       }
       else{ this.events.publish("user:logout"); }
     });
   }
+
   httpGet(ext: string, jsonPath: any[], target:string){
     this.validatePath(jsonPath);
-    this.setAuthorization().then((r:boolean) => {
-      if(r){ this.store.dispatch({type: HTTP_CALL, payload: { data:'', method: 'get', ext:ext, jsonPath: jsonPath, tgt: target }}) }
+    this.setAuthorization().then((authorized:boolean) => {
+      if(authorized){ this.store.dispatch({type: HTTP_CALL, payload: { data:'', method: 'get', ext:ext, jsonPath: jsonPath, tgt: target }}) }
       else {this.events.publish("user:logout");}
     })
   }
+  setEditMode(value: boolean){
+    this.store.dispatch({type: SET_EDIT_MODE, payload: {editMode: value}})
+  }
+  flipEditMode(){
+    this.state.take(1).subscribe(s => {
+      this.store.dispatch({type: SET_EDIT_MODE, payload: {editMode: !s.editMode }})
+    });
+  }
+  getEditMode(): boolean {
+    let editMode: boolean= false;
+    this.state.take(1).subscribe(s => {
+      editMode = s.editMode;
+    });
+    return editMode;
+  }
   setAuthorization(): Promise<boolean>{
+    console.log('Setting authorization');
     let user:any = null;
+    let returnVal: boolean = false;
     this.state.take(1).subscribe(s => {
       user = s['users'][0];
-      typeof user !== 'undefined' && this.headers.set("Authorization",user.claims.access_token);
+      if(user !== null && typeof user !== 'undefined' && (typeof user.claims !== 'undefined')){
+        this.headers.set("Authorization",user.claims.access_token);
+        returnVal = true;
+      }
     });
-    if(user == null){
-      return Promise.resolve(false);
-    }else{
-      return Promise.resolve(true);
-    }
-//    this.state.take(1).subscribe(s => {
-//      let user = s['users'][0];
-//       if(user == null || user.length != 1){
-//         return this.usrData.getUser().then(u => {
-//           if(typeof u != 'undefined' && u != null && typeof u.claims != 'undefined'){
-//             this.headers.set("Authorization",user.claims.access_token);
-//             return Promise.resolve(true);
-//           }
-//           else {
-//             return Promise.resolve(false);
-//           }
-//         });
-//       }else {
-//         this.headers.set("Authorization",user.claims.access_token);
-//         return Promise.resolve(true);
-//       }
- //   });
+    return Promise.resolve(returnVal);
   }
   getHeader(): Headers {
+    console.log('Getting header...');
     return this.headers;
   }
   //target is the object eg, room, apt, etc. valObj is the object, fill is whether to prefill the values or not.
@@ -182,16 +168,4 @@ export class FunctionsProvider{
     }
     return result;
   }
-  // hasRole(role:string){
-  //   let result = false;
-  //   this.state.takeLast(1).subscribe(s => {
-  //     let user = s['users'][0];
-  //     if(user.claims.role == '')
-  //   });
-  //   if(this.user != undefined && this.user.claims.roles.includes(role)){
-  //     return true;
-  //   }else{
-  //     return false;
-  //   }
-  // }
 }

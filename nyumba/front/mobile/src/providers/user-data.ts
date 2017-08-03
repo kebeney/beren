@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { Events } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
-import {localStoredUser, LOGOUT, Person, State} from "../interfaces/consts";
+import {localStoredUser, Person, State} from "../interfaces/consts";
 import {Store} from "@ngrx/store";
 
 
@@ -17,6 +17,26 @@ export class UserData {
     public storage: Storage,
     public store: Store<State>
   ) {}
+
+  //--------------------------------------------------------New Functions --------------------------------------------------------------
+
+  localLogin(person: Person): Promise<any>{
+    let loggedIn: Promise<boolean> = this.storage.set(this.HAS_LOGGED_IN,true);
+    let saveUser: Promise<Person> = this.storage.set(localStoredUser,person);
+    return Promise.all([loggedIn,saveUser]);
+  }
+  localLogout(): Promise<any>{
+    let logout: Promise<any> = this.storage.remove(this.HAS_LOGGED_IN);
+    let removeUser: Promise<any> = this.storage.remove(localStoredUser);
+    return Promise.all([logout,removeUser]);
+  }
+  hasLoggedIn(): Promise<boolean> {
+    return this.storage.get(this.HAS_LOGGED_IN).then((value) => {
+      return value === null ? false : value;
+    });
+  };
+
+  //--------------------------------------------------------New Functions --------------------------------------------------------------
 
   hasFavorite(sessionName: string): boolean {
     return (this._favorites.indexOf(sessionName) > -1);
@@ -46,15 +66,15 @@ export class UserData {
   //   //this.events.publish('user:signup');
   // };
 
-  logout() {
-    this.storage.remove(localStoredUser).then(() => {
-      this.storage.remove(this.HAS_LOGGED_IN).then(()=>{
-        this.storage.remove('username');
-        this.store.dispatch({type: LOGOUT, payload: {}});
-        this.events.publish('user:logout');
-      });
-    });
-  };
+  // logout() {
+  //   this.storage.remove(localStoredUser).then(() => {
+  //     this.storage.remove(this.HAS_LOGGED_IN).then(()=>{
+  //      // this.storage.remove('username');
+  //       this.store.dispatch({type: LOGOUT, payload: {}});
+  //       this.events.publish('user:logout');
+  //     });
+  //   });
+  // };
 
   getUsername(): Promise<string> {
     return this.storage.get(localStoredUser).then((p: Person) => {
@@ -74,21 +94,11 @@ export class UserData {
 
   }
 
-  hasLoggedIn(): Promise<boolean> {
-    return this.storage.get(this.HAS_LOGGED_IN).then((value) => {
-      return value === null ? false : value;
-    });
-  };
-
   checkHasSeenTutorial(): Promise<string> {
     return this.storage.get(this.HAS_SEEN_TUTORIAL).then((value) => {
       return value;
     });
   };
-
-  saveToLocal(key: string, value: any){
-    this.storage.set(key,value);
-  }
   getFromLocal(key: string): Promise<any>{
     return this.storage.get(key).then(val => val);
   }

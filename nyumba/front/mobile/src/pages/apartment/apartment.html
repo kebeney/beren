@@ -1,6 +1,6 @@
 <div *ngIf="(apts | async)?.length == 0" >First time here ? Click edit button above to create apartments</div>
 <!------------------------------------------- Not Editing ------------------------------------------------------------>
-<ion-list *ngIf="! (editMode | async)" >
+<ion-list *ngIf="! (fns.getEditMode())" >
   <span *ngFor="let apt of (apts | async)">
     <ion-item (click)="tapped(apt)" >
       <a class="row" >
@@ -13,7 +13,7 @@
 
 <!------------------------------------------- Editing ------------------------------------------------------------>
 
-<ion-list *ngIf="editMode | async" >
+<ion-list *ngIf="fns.getEditMode()" >
   <ion-item-sliding #item *ngFor="let apt of (apts | async)">
     <ion-item>
       <a class="row" >

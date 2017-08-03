@@ -9,6 +9,6 @@
     <dynamic-form [questions]="questions" [state]="(state | async)"
                   (changes)="updateRooms($event)"
                   (cancel)="cancel()"
-                  (formOutput)="sf.formOutput(urlExt,parentId,$event,model,jsonPath)"></dynamic-form>
+                  (formOutput)="fns.formOutput(urlExt,parentId,$event,model,jsonPath)"></dynamic-form>
   </div>
 </ion-content>
