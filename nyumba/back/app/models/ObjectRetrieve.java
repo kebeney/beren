@@ -80,6 +80,6 @@ public class ObjectRetrieve {
         List results = jpaApi.em().createNamedQuery("search Building match anyColumn")
                 .setParameter("searchString","%"+searchString+"%")
                 .setFirstResult(0).setMaxResults(20).getResultList();
-        return ok(mapper.toJson(results,args));
+        return ok(mapper.toJson(new ClientMsg("",results),args));
     }
 }

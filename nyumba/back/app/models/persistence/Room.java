@@ -61,6 +61,11 @@ public class Room {
     @Column(columnDefinition = "boolean default false")
     private Boolean deleted = false;
 
+    @Override
+    public boolean equals(Object other){
+        return other instanceof Room && (this.id.equals(((Room)other).id));
+    }
+
     public String getState() {
         return state;
     }

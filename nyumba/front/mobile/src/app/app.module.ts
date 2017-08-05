@@ -49,10 +49,7 @@ import {ApartmentPage} from "../pages/apartment/apartment";
 import {DynamicFormComponent} from "../providers/questions/dynamic-form.component";
 import {DynamicFormQuestionComponent} from "../providers/questions/dynamic-form-question.component";
 import { RoomsSummaryComponent } from '../components/rooms-summary/rooms-summary';
-import {PaymentsPage} from "../pages/payments/payments";
 import {TenantHomePage} from "../pages/tenant-home/tenant-home";
-import { TenantSectionComponent } from '../components/tenant-section/tenant-section';
-import { LandlordSectionComponent } from '../components/landlord-section/landlord-section';
 import {HomePage} from "../pages/home/home";
 
 
@@ -82,10 +79,7 @@ import {HomePage} from "../pages/home/home";
     GenericView,
     QuestionView,
     RoomsSummaryComponent,
-    PaymentsPage,
-    TenantHomePage,
-    TenantSectionComponent,
-    LandlordSectionComponent
+    TenantHomePage
   ],
   imports: [
     BrowserModule,
@@ -107,7 +101,6 @@ import {HomePage} from "../pages/home/home";
         { component: SignupPage, name: 'SignupPage', segment: 'signup' },
         { component: ApartmentPage, name: 'ApartmentPage', segment: 'apts' },
         { component: TenantHomePage, name: 'tenantHomPage', segment: 'tenantHome'},
-        { component: PaymentsPage, name: 'PaymentsPage', segment: 'payments'},
         { component: HomePage, name: 'homePage', segment: 'home'}
       ]
     }),
@@ -141,7 +134,6 @@ import {HomePage} from "../pages/home/home";
     QuestionView,
     RoomsSummaryComponent,
     ApartmentPage,
-    PaymentsPage,
     TenantHomePage,
     HomePage
   ],

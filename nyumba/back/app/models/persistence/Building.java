@@ -47,11 +47,11 @@ public class Building {
     @Column(nullable = true)
     @JsonManagedReference
     @OrderBy("ord ASC")
-    Set<Room> rooms;
+    Set<Room> landLordRooms;
 
     @ManyToMany(targetEntity = Room.class, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private Set<Room> selectedRooms;
+    private Set<Room> tenantRooms;
 
     @JsonBackReference
     @ManyToMany(targetEntity = Users.class, mappedBy = "apts")
@@ -110,20 +110,6 @@ public class Building {
         this.country = country;
     }
 
-    public Set<Room> getRooms() {
-        return rooms == null ? new HashSet<>(): rooms;
-    }
-
-    public void setRooms(Set<Room> rooms) {
-        this.rooms = rooms;
-    }
-    public void addRoom(Room room){
-        if(this.rooms == null){
-            this.rooms = new HashSet<>();
-        }
-        this.rooms.add(room);
-    }
-
     public Set<Users> getUsers() {
         return users == null ? new HashSet<>() : users;
     }
@@ -143,18 +129,38 @@ public class Building {
         }
     }
 
-    public Set<Room> getSelectedRooms() {
-        return selectedRooms;
+    public Set<Room> getLandLordRooms() {
+        return landLordRooms;
     }
 
-    public void setSelectedRooms(Set<Room> selectedRooms) {
-        this.selectedRooms = selectedRooms;
+    public void setLandLordRooms(Set<Room> landLordRooms) {
+        this.landLordRooms = landLordRooms;
     }
-    public void addSelectedRoom(Room room){
-        if(this.selectedRooms == null){
-            this.selectedRooms = new HashSet<>();
+    public void addLandLordRoom(Room room){
+        if(this.landLordRooms == null){
+            this.landLordRooms = new HashSet<>();
         }
-        this.selectedRooms.add(room);
+        this.landLordRooms.add(room);
+    }
+    public void removeLandLordRoom(Room room){
+        this.landLordRooms.remove(room);
+    }
+
+    public Set<Room> getTenantRooms() {
+        return tenantRooms;
+    }
+
+    public void setTenantRooms(Set<Room> tenantRooms) {
+        this.tenantRooms = tenantRooms;
+    }
+    public void addTenantRoom(Room room){
+        if(this.tenantRooms == null){
+            this.tenantRooms = new HashSet<>();
+        }
+        this.tenantRooms.add(room);
+    }
+    public void removeTenantRoom(Room room){
+        this.tenantRooms.remove(room);
     }
 
     public Long getParentId() {

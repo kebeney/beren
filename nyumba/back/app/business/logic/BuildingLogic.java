@@ -51,20 +51,38 @@ public class BuildingLogic {
                 return this.mapper.mapFields(tmpBuilding,existing);
             }
         }else if(action == Args.ACTIONS.DELETE){
+            Users initiator = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
             Building existing = jpaApi.em().find(Building.class,tmpBuilding.getId());
            // building = jpaApi.em().find(Building.class,building.getId());
 
             logger.debug("Building: "+toJson(tmpBuilding).toString());
             logger.debug("Existing is: "+toJson(existing).toString());
 
-            for(Room r: existing.getRooms()){
-                this.commonLogic.archiveUsers(r);
+            if(initiator.getRole().equalsIgnoreCase("tenant")){
+
+                //First dissociate all rooms with the tenant.
+                existing.getTanantRooms().clear();
+                jpaApi.em().merge(existing);
+
+                //Then dissociate the building with the tenant.
+                initiator.removeApt(existing);
+                jpaApi.em().merge(initiator);
+
+            }else if(initiator.getRole().equalsIgnoreCase("landlord")){
+                //Perform landlord logic
+                for(Room r: existing.getLandLordRooms()){
+                    this.commonLogic.archiveUsers(r);
+                }
+                for(Users u: existing.getUsers()){
+                    u.removeApt(existing);
+                }
+                jpaApi.em().remove(existing);
+
+            }else{
+                throw new IllegalStateException("Role for given user was not found: "+initiator.getUsername());
             }
-            for(Users u: existing.getUsers()){
-                u.removeApt(existing);
-            }
-            jpaApi.em().remove(existing);
-            //This has to be nested because of how the front end interprets the message. It has to be inside the data field.
+
+            //This has to be nested because of how the front end interprets the message. It needs to be inside the data field.
             return new ClientMsg("",new ClientMsg(existing.getId(),"deleted"));
         }
         return obj;

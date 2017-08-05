@@ -1,16 +1,16 @@
 package business.logic;
 
+import com.google.inject.Inject;
 import models.persistence.Bill;
 import models.persistence.Room;
 import models.persistence.person.Users;
 import play.Logger;
 import play.db.jpa.JPAApi;
-import security.Secured;
 import util.Args;
 import util.ClientMsg;
 import util.Mapper;
 
-import javax.inject.Inject;
+
 import java.security.PublicKey;
 import java.util.Map;
 
@@ -21,14 +21,13 @@ public class BillLogic {
 
     private static final Logger.ALogger logger = Logger.of(UserLogic.class);
     private final JPAApi jpaApi;
-    private final Secured secured;
-    private final Mapper mapper;
+    private final PaymentApi paymentApi;
     private final RoomStatus roomStatus;
     private final CommonLogic commonLogic;
 
     @Inject
-    public BillLogic(JPAApi jpaApi, Secured secured, Mapper mapper, RoomStatus roomStatus, CommonLogic commonLogic){
-        this.jpaApi = jpaApi; this.secured = secured; this.mapper = mapper; this.roomStatus = roomStatus; this.commonLogic = commonLogic;
+    public BillLogic(JPAApi jpaApi, PaymentApi paymentApi, RoomStatus roomStatus, CommonLogic commonLogic){
+        this.jpaApi = jpaApi; this.paymentApi = paymentApi; this.roomStatus = roomStatus; this.commonLogic = commonLogic;
     }
 
     public Object apply(Map<Args,Object> args) {
@@ -47,6 +46,11 @@ public class BillLogic {
                 payment.setRoom(room);
 
                 payment.setUser(user);
+                //If user is a tenant, send request for processing to equity bank.
+                if(user.getRole().equalsIgnoreCase("tenant")){
+                    this.paymentApi.processPayment(payment);
+                }
+                //Otherwise if user is landlord/caretaker, then this is a manual entry. Save it to DB appropriately.
                 payment = (Bill) roomStatus.updateBill(payment);
 
                 jpaApi.em().persist(payment);

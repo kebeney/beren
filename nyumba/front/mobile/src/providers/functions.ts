@@ -12,7 +12,7 @@ export class FunctionsProvider{
 
   private headers = new Headers({'Content-type': 'application/json'});
 //  public user: Person;
- // public editMode: Observable<boolean>;
+  public editMode: Observable<boolean>;
   //public editModeSub: Subject<boolean> = new Subject();
   private loading: Loading;
   public navOptionsBack =    {animate: true, animation: 'ios-transition',duration: 300, direction: 'back',    easing: 'ease-out' };
@@ -23,7 +23,11 @@ export class FunctionsProvider{
   constructor(private store: Store<State>, private questions: QuestionsProvider, private ldgCtrl: LoadingController,
               private altCtrl: AlertController, private events: Events){
     this.state = store.select('componentReducer');
-    //this.editMode = this.editModeSub.asObservable();
+    this.editMode = new Observable(observer => {
+      this.state.subscribe(s => {
+        observer.next(s.editMode);
+      });
+    });
   }
 //           ext,  parentId, data,     model, jsonPath
 //Example: '/add','apt.id', '$event', 'Room','[user,apt,room]'
@@ -42,7 +46,6 @@ export class FunctionsProvider{
         console.log('Dispatching HTTP_CALL');
         this.store.dispatch({type: HTTP_CALL, payload: { data:uData, ext: ext, method: 'post', jsonPath: jsonPath, tgt: args.tgt || ''}});
       }
-      else{ this.events.publish("user:logout"); }
     });
   }
 
@@ -57,6 +60,7 @@ export class FunctionsProvider{
     this.store.dispatch({type: SET_EDIT_MODE, payload: {editMode: value}})
   }
   flipEditMode(){
+    console.log('Flipping editMode');
     this.state.take(1).subscribe(s => {
       this.store.dispatch({type: SET_EDIT_MODE, payload: {editMode: !s.editMode }})
     });
@@ -67,6 +71,16 @@ export class FunctionsProvider{
       editMode = s.editMode;
     });
     return editMode;
+  }
+  getRole(): string{
+    let role: string = '';
+    this.state.take(1).subscribe(s => {
+      let user = s.users[0];
+      if(user && user.claims){
+        role = user.claims.role
+      }
+    });
+    return role;
   }
   setAuthorization(): Promise<boolean>{
     console.log('Setting authorization');

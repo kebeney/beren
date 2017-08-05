@@ -7,7 +7,9 @@ import {QuestionView} from "../question-view/question-view";
 import {GenericView} from "../generic-view/generic-view";
 import {Subscription} from "rxjs/Subscription";
 import {Subject} from "rxjs/Subject";
-import {Apt, billModel, paymentsPath, Person, personsPath, Room, roomsPath, State} from "../../interfaces/consts";
+import {
+  Apt, billModel, landlordRole, paymentsPath, Person, personsPath, Room, roomsPath, State
+} from "../../interfaces/consts";
 import {FunctionsProvider} from "../../providers/functions";
 
 @Component({
@@ -37,10 +39,11 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
     this.rooms = new Observable(observer => {
       this.state.takeUntil(this.unsub).subscribe(s => {
         let user: Person = s['users'][0];
+        let role: string = this.fns.getRole() ;
         if(typeof s['users'][0] !== 'undefined'){
           let apts: Apt[] = user['apts'] || [];
-          let apt: Apt = apts.find((apt:Apt) => apt.id === this.apt.id) || {rooms: []};
-          let rooms = apt['rooms'];
+          let apt: Apt = apts.find((apt:Apt) => apt.id === this.apt.id) || {landlordRooms: [], tenantRooms: []};
+          let rooms = role === landlordRole ? apt['landlordRooms']: apt['tenantRooms'] ;
           observer.next(rooms)
         }
       })

@@ -18,7 +18,8 @@
     <ion-item>
       <a class="row" >
         <span class="col left" >{{apt?.name}}</span>
-        <span class="col right" >{{ apt?.rooms?.length || 0}} Rooms</span>
+        <span *ngIf="fns.getRole() === 'tenant'" class="col right" >{{ apt?.tenantRooms?.length || 0}} Rooms</span>
+        <span *ngIf="fns.getRole() === 'landlord'" class="col right" >{{ apt?.landlordRooms?.length || 0}} Rooms</span>
       </a>
     </ion-item>
     <ion-item-options side="left">
@@ -32,5 +33,5 @@
     </ion-item-options>
     -->
   </ion-item-sliding>
-  <div class="center" ><button ion-button round small (click)="add()" >Add Apartment</button></div>
+  <div *ngIf="fns.getRole() === 'landlord'" class="center" ><button ion-button round small (click)="add()" >Add Apartment</button></div>
 </ion-list>

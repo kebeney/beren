@@ -56,11 +56,6 @@ export class MainEffects {
 
         this.fns.dismissLoader();
 
-        //console.log('Error code: ',error.status);
-        //console.log('Error msg: ',error.statusText);
-        //console.log('Error body: ',error._body);
-        //let errBdy = error._body;
-        //console.log(errBdy == 'tokenExp');
         console.log(error);
         let index = this.knownCode.indexOf(error.status);
         console.log('Index is:',index);

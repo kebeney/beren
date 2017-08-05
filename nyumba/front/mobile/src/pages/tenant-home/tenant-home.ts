@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output,
+  ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output,
   ViewChild
 } from "@angular/core";
 import {Events, Nav, Navbar, NavController, NavParams} from "ionic-angular";
@@ -31,7 +31,6 @@ export class TenantHomePage implements OnInit, OnDestroy{
   private aptSubs: Subject<void> = new Subject<void>();
   public searchUpdated: Subject<string> = new Subject<string>();
   @Output()  searchChangeEmitter: EventEmitter<any> = new EventEmitter();
-  @Input() editMode: Observable<boolean>
   searchResults: Observable<State>;
 
   constructor(public store: Store<State>, public navCtrl: NavController, public navParams: NavParams,
@@ -62,7 +61,7 @@ export class TenantHomePage implements OnInit, OnDestroy{
     });
   }
   ionViewCanEnter(): Promise<boolean> {
-    console.log('Trying to enter tenant-home...')
+    console.log('Trying to enter tenant-home...');
     return this.userData.getUser().then(u => {
       if(u === undefined || u === null ){
         this.nav.setRoot(LoginPage);
@@ -88,7 +87,7 @@ export class TenantHomePage implements OnInit, OnDestroy{
     this.navCtrl.push(QuestionView,{
       //TODO: Start from here. Figure out what should be returned from the back end and how to get it well displayed on the tenant's page.
       //Special case because we are passing a Room model to the back end but we are receiving an Apt in response.
-      questions: this.fns.getQuiz({tgt:'apts',val: null,fill:true, role: 'tenant', options:apt.rooms}),  title: apt.name, model: roomModel, target: 'apts', parentId: apt.id,
+      questions: this.fns.getQuiz({tgt:'apts',val: null,fill:true, role: 'tenant', options:apt.tenantRooms}),  title: apt.name, model: roomModel, target: 'apts', parentId: apt.id,
       jsonPath: this.jsonPath, urlExt: '/add', uniqId: 'tenant-home'
     });
   }

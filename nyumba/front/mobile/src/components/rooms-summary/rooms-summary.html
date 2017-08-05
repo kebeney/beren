@@ -1,11 +1,22 @@
 <ion-header>
-  <ion-navbar color="primary" [hideBackButton]="fns.getEditMode()" >
+  <ion-navbar color="primary" [hideBackButton]="fns.editMode | async" >
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title >Building: {{apt.name}}</ion-title>
-    <ion-buttons end>
-      <button ion-button (click)="fns.flipEditMode() ">{{fns.getEditMode() ? 'Done' : 'Edit'}}</button>
+    <ion-buttons *ngIf="fns.getRole() == 'landlord'" end>
+      <button ion-button (click)="fns.flipEditMode();">
+        <!--
+        <span *ngIf="fns.getRole() == 'tenant'" >
+          <ion-icon *ngIf="!(fns.editMode | async)" ios="ios-search" md="md-search" ></ion-icon> &nbsp; <span>{{(fns.editMode | async) ? 'Done' : 'Search'}}</span>
+        </span>
+        -->
+        <span >
+          <ion-icon *ngIf="!(fns.editMode | async)" name="create" ></ion-icon> &nbsp; <span>{{(fns.editMode | async) ? 'Done' : ''}}</span>
+        </span>
+      </button>
+      <!-- <button ion-button (click)="fns.flipEditMode() ">{{fns.getEditMode() ? 'Done' : 'Edit'}}</button>   -->
+      <!-- <ion-icon *ngIf="!fns.getEditMode()" name="create" ></ion-icon> &nbsp; <span>{{fns.getEditMode() ? 'Done' : ''}}</span>  -->
     </ion-buttons>
   </ion-navbar>
 </ion-header>
@@ -18,13 +29,14 @@
         <ion-header class="col center btm-brd" >Bal</ion-header>
       </div>
     </ion-item>
+
     <!----------------------------------------Not Editing---------------------------------------->
 
-    <ion-item-group *ngIf="!fns.getEditMode()">
+    <ion-item-group *ngIf="!(fns.editMode | async)">
 
         <ion-item *ngFor='let room of (rooms | async)'  >
           <span class="row" >
-            <button class="col tr-bg" (click)="tapped(room, 'occupants')" ><a >{{ room?.name }}</a></button>
+            <button class="col tr-bg" (click)="tapped(room, (fns.getRole() === 'landlord') ? 'occupants' : 'payments')" ><a >{{ room?.name }}</a></button>
             <button class="col tr-bg" (click)="tapped(room, 'payments')" >
               <a> {{ room?.bills && room.bills.length > 0 && room.bills[room.bills.length -1 ].bal || 0 }}</a>
             </button>
@@ -33,9 +45,9 @@
 
     </ion-item-group>
 
-
     <!---------------------------------------Editing--------------------------------------------->
-    <ion-item-group *ngIf="fns.getEditMode()" [reorder]="true">
+
+    <ion-item-group *ngIf="(fns.editMode | async) && fns.getRole() === 'landlord'" [reorder]="true">
       <ion-item-sliding *ngFor='let room of (rooms | async)' >
         <ion-item >
           <span class="row" >
@@ -50,6 +62,7 @@
         </ion-item-options>
       </ion-item-sliding>
     </ion-item-group>
-    <div class="center" *ngIf="fns.getEditMode()" ><button ion-button round small (click)="add()" >Add Room</button></div>
+
+    <div class="center" *ngIf="fns.editMode | async" ><button ion-button round small (click)="add()" >Add Room</button></div>
   </ion-list>
 </ion-content>

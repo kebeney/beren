@@ -59,8 +59,8 @@ export class QuestionsProvider {
           option == 2 ? this.getPreFilledQuiz(pl.val,this.roomQuiz) : this.getLabelValues(pl.val,this.roomQuiz);
       }
       case 'paymentDetails': {
-        return  option == 1 ? this.getQuizInstances(this.paymentQuiz):
-          option == 2 ? this.getPreFilledQuiz(pl.val,this.paymentQuiz) : this.getLabelValues(pl.val,this.paymentQuiz);
+        return  option == 1 ? this.getQuizInstances(this.getPaymentQuiz(pl)):
+          option == 2 ? this.getPreFilledQuiz(pl.val,this.getPaymentQuiz(pl)) : this.getLabelValues(pl.val,this.paymentQuiz);
       }
       case 'apts': {
         return  option == 1 ? this.getQuizInstances(this.getAptQuiz(pl)):
@@ -167,6 +167,40 @@ export class QuestionsProvider {
     });
     this.personQuiz.forEach( pq => {tenantQuiz.push(pq)});
     return tenantQuiz;
+  };
+  private getPaymentQuiz(pl: QuizPayLType): QuizType[]{
+    let tmpPaymentQuiz: any = [];
+    console.log(this.paymentQuiz);
+    //If role is landlord/caretaker
+    if(pl.role === 'landlord'){
+      tmpPaymentQuiz.push(
+        {
+          key: 'rcpt',
+          label: 'Receipt Number',
+          order: 3,
+          ctrlType: 'ion-text-box'
+        }
+      );
+    }else if(pl.role === 'tenant'){
+      //If role is tenant, ask for mobile number.
+      //TODO: Take this out and use the verified and authenticated mobile number.
+      //TODO: Create a process to authenticate the user through automated text message and email.
+      tmpPaymentQuiz.push(
+        {
+          key: 'mobileNumber',
+          label: 'Mobile Number',
+          order: 3,
+          ctrlType: 'ion-text-box'
+        }
+      );
+    }else {
+      console.log('Unrecognized role supplied: ',pl.role);
+    }
+
+    this.paymentQuiz.forEach(q => {
+      tmpPaymentQuiz.push(q);
+    });
+    return tmpPaymentQuiz;
   }
   private roomQuiz = [
     {
@@ -239,6 +273,7 @@ export class QuestionsProvider {
       ctrlType: 'ion-text-box'
     }
   ];
+  //TODO: disable or enable payment Date based on wether role is landlord or tenant.
   private paymentQuiz = [
     {
       key: 'pmtDtEpochMilli',
@@ -256,9 +291,9 @@ export class QuestionsProvider {
       ctrlType: 'ion-text-box'
     },
     {
-      key: 'rcpt',
-      label: 'Receipt Number',
-      order: 3,
+      key: 'description',
+      label: 'Description',
+      order: 5,
       ctrlType: 'ion-text-box'
     }
   ];

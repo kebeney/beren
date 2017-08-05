@@ -1,6 +1,6 @@
 export interface QuizPayLType{tgt: string,val: any,fill: boolean, role?:string,options?:Array<any>}
 export interface Bill{id?:number, bal: number}
-export interface Apt{name?: string, id?: string, rooms?: Array<Room>, selectedRooms?:Array<Room>}
+export interface Apt{name?: string, id?: string, landlordRooms?: Array<Room>, tenantRooms?:Array<Room>}
 export interface Room{id?: number, name?: string,rent: number, bills: Array<Bill>, personList: Array<Person>}
 export interface Person{id?: string, claims?: any, username?: string, apts?: Array<Apt>}
 export interface UserOptions {
@@ -59,3 +59,6 @@ export const userModel = 'User';
 
 export const localStoredUser = 'localStoredUser';
 export const localSelectedApts = 'localSelectedApts';
+
+export const tenantRole = 'tenant';
+export const landlordRole = 'landlord';

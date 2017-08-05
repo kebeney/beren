@@ -36,6 +36,9 @@ public class Bill implements Comparable<Bill> {
     private String rcpt;
     private Long pmtDtEpochMilli;
     private Long txnTmEpochMilli;
+    private String description;
+    private String status;
+    private Long auditNumber;
 
  //   @Column(nullable = true)
  //   @JsonManagedReference
@@ -127,5 +130,13 @@ public class Bill implements Comparable<Bill> {
 
     public void setUser(Users user) {
         this.user = user;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

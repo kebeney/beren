@@ -3,11 +3,14 @@ package business.logic;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import models.persistence.Bill;
 import play.Configuration;
 import play.Logger;
+import play.db.jpa.JPAApi;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
 
+import javax.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -26,8 +29,17 @@ public class PaymentApi implements Runnable {
     WSClient ws;
     @Inject
     Configuration configuration;
+
+    @Inject
+    JPAApi jpaApi;
+
     private String access_token = null;
     private Instant token_expiry = null;
+
+//    @Inject
+//    public PaymentApi(JPAApi jpaApi){
+//
+//    }
 
     public void run(){
         Instant now = Instant.now().plusSeconds(61);
@@ -40,6 +52,12 @@ public class PaymentApi implements Runnable {
             logger.debug("Time now is:      "+nowTime);
             logger.debug("Token expires at: "+expireTime);
         }
+    }
+    public void processPayment(Bill bill){
+        //TODO: Get back to the payment API.
+        jpaApi.withTransaction(() -> {
+            EntityManager em = jpaApi.em();
+        });
     }
     private void getAccessToken(){
 

@@ -16,9 +16,8 @@ import {UserData} from "../../providers/user-data";
 })
 export class HomePage implements OnInit{
   loggedIn: boolean = false;
-  role: string = '';
+  //role: string = '';
   state: Observable<State>;
-  showing: boolean = false;
   msgIgnore: Array<any> = ['loginSuccess','loginComplete','logout','logoutComplete'];
 
   constructor(public events: Events, public store: Store<State>, public fns: FunctionsProvider, public userData: UserData, public navCtrl: NavController, private altCtrl: AlertController) {
@@ -35,13 +34,13 @@ export class HomePage implements OnInit{
       if(msg === 'loginSuccess' && (typeof user !== 'undefined')){
         this.userData.localLogin(user).then(() => {
           this.loggedIn = true;
-          this.role = user.claims.role ;
           this.store.dispatch({type: SEND_MESSAGE, payload: {msg: 'loginComplete'}});
           this.events.publish('menu:login');
         });
       }else if((msg == 'logout' || msg == 'tokenExp') && this.loggedIn){
+        console.log('msg is:',msg);
         this.loggedIn = false;
-        this.role = '';
+        console.log('Dispatching logout...');
         this.store.dispatch({type: LOGOUT});
         this.userData.localLogout().then(() => {
           if( this.navCtrl !== null){
@@ -59,19 +58,20 @@ export class HomePage implements OnInit{
     //---------------------------------------End of constructor-----------------------------
   }
   ngOnInit(){
+    let showing: boolean = false;
     this.state.subscribe( (s: State): void => {
       let ignore = this.msgIgnore.find(msg => msg === s.msg);
       let msg: any = s.msg ;
       if(msg === 'tokenExp'){ msg = 'Session Expired!'}
       //console.log('showing: ',this.showing);
-      if( !ignore && ( typeof msg === 'string') && (msg.trim() !== '') && !this.showing){
-        this.showing = true;
+      if( !ignore && ( typeof msg === 'string') && (msg.trim() !== '') && !showing){
+        showing = true;
         //Present message and wait for user to click ok.
         this.altCtrl.create({title: '', message: msg, buttons: [{text: 'Dismiss',handler: () => {
         }}]}).present().then(() => {
-          this.showing = false;
-          console.log('Show is:',this.showing);
-          this.store.dispatch({type: RESET_MESSAGE})
+          showing = false;
+          console.log('Show is:',showing);
+          this.store.dispatch({type: RESET_MESSAGE});
         });
       }
     });
@@ -82,6 +82,10 @@ export class HomePage implements OnInit{
     // });
   }
   ionViewDidLoad(){
+    //This helps when user logs out and logs back in immediately. The message will still be what it was before logout so if it was tokenExp,
+    //it will be displayed a second time. Which should not be the case.
+    console.log('Dispatching: RESET_MESSAGE');
+    this.store.dispatch({type: RESET_MESSAGE});
     //console.log('Executing did load...');
     this.userData.getUser().then((user:Person) => {
       //console.log('user is: ',user);

@@ -58,7 +58,7 @@ export class GenericView implements OnInit{
   }
   public add(){
     this.navCtrl.push(QuestionView,{
-      questions: this.fns.getQuiz({tgt:this.target,val:null,fill: false}),  title: 'New '+this.name, model: this.name, target: this.target, parentId: this.parent.id, jsonPath: this.jsonPath, urlExt: '/add'
+      questions: this.fns.getQuiz({tgt:this.target,val:null,fill: false,role:this.fns.getRole()}),  title: 'New '+this.name, model: this.name, target: this.target, parentId: this.parent.id, jsonPath: this.jsonPath, urlExt: '/add'
     });
   }
   edit(valObj: any){
