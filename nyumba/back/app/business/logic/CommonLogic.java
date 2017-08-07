@@ -32,7 +32,7 @@ public class CommonLogic {
             FormerTenant formerTenant;
             for(Tenant tenant: room.getPersonList()){
                 formerTenant = new FormerTenant();
-                this.mapper.mapFields(tenant,formerTenant);
+                this.mapper.mapUnrelatedObjects(tenant,formerTenant);
                 formerTenant.setBuildingName(room.getBuilding().getName());
                 formerTenant.setRoomName(room.getName());
                 formerTenant.setBal(room.getBills().last().getBal());

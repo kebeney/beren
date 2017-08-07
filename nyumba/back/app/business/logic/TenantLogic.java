@@ -49,15 +49,15 @@ public class TenantLogic {
             }
             else{
                 //This is an existing tenant so we are potentially updating the tenant info
-                Tenant existing = jpaApi.em().find(Tenant.class,tenant.getId());
-                existing = (Tenant) this.mapper.mapFields(tenant,existing);
-                return existing;
+                Tenant existingTenant = jpaApi.em().find(Tenant.class,tenant.getId());
+                existingTenant = (Tenant) this.mapper.mapFields(tenant,existingTenant);
+                return existingTenant;
             }
 
         }else if(action == Args.ACTIONS.DELETE){
             tenant = jpaApi.em().find(Tenant.class,tenant.getId());
             FormerTenant formerTenant = new FormerTenant();
-            this.mapper.mapFields(tenant,formerTenant);
+            this.mapper.mapUnrelatedObjects(tenant,formerTenant);
             formerTenant.setBuildingName(tenant.getRoom().getBuilding().getName());
             formerTenant.setRoomName(tenant.getRoom().getName());
             formerTenant.setBal(tenant.getRoom().getBills().last().getBal());

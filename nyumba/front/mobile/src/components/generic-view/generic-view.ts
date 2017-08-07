@@ -52,7 +52,7 @@ export class GenericView implements OnInit{
   }
   ngOnInit(){
     //This is just getting labels for content to be displayed as titles for generic view
-    this.fns.getQuiz({tgt:this.target,val:this.valObjArr[0],fill:false}).forEach(label => {
+    this.fns.getQuiz({tgt:this.target,val:this.valObjArr[0],fill:false,role: this.fns.getRole()}).forEach(label => {
       this.labels[label['key']] = label['label'];
     });
   }
@@ -63,7 +63,7 @@ export class GenericView implements OnInit{
   }
   edit(valObj: any){
     this.navCtrl.push(QuestionView,{
-      questions: this.fns.getQuiz({tgt:this.target,val:valObj,fill: true}), title: 'Edit '+this.name, model: this.name, target: this.target, parentId: this.parent.id, jsonPath: this.jsonPath, urlExt: '/edit'
+      questions: this.fns.getQuiz({tgt:this.target,val:valObj,fill: true,role: this.fns.getRole()}), title: 'Edit '+this.name, model: this.name, target: this.target, parentId: this.parent.id, jsonPath: this.jsonPath, urlExt: '/edit'
     },this.fns.navOptionsForward)
   }
   remove(item: any){
@@ -71,7 +71,7 @@ export class GenericView implements OnInit{
   }
   tapped(valObj: any): void {
     //This call will just get he label and value pairs for display purposes in the display details page
-    let content = this.fns.getQuiz({tgt:this.target,val:valObj,fill:false});
+    let content = this.fns.getQuiz({tgt:this.target,val:valObj,fill:false,role:this.fns.getRole()});
     let mdl = this.mdlCtrl.create(Display, {content: content});
     mdl.present();
   }
@@ -82,6 +82,8 @@ export class GenericView implements OnInit{
   }
    ionViewWillLeave(){
      //this.sf.cancelEditing(this.target);
+     //this.valObjArr.
+     //this.topInfo['value'] = null;
    }
 }
 

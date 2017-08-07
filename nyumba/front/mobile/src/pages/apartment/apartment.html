@@ -1,25 +1,25 @@
+
 <div *ngIf="(apts | async)?.length == 0" >First time here ? Click edit button above to create apartments</div>
 <!------------------------------------------- Not Editing ------------------------------------------------------------>
-<ion-list *ngIf="! (fns.getEditMode())" >
+<ion-list *ngIf="! (fns.editMode | async)" >
   <span *ngFor="let apt of (apts | async)">
     <ion-item (click)="tapped(apt)" >
       <a class="row" >
         <span class="col left" >{{apt?.name}}</span>
-        <span class="col right" >{{ apt?.rooms?.length || 0}} Rooms</span>
+        <span class="col right" >{{ fns.getRole() === 'landlord' ? ( apt?.landlordRooms?.length || 0 ) : ( apt?.tenantRooms?.length || 0 )}} Rooms</span>
       </a>
     </ion-item>
   </span>
 </ion-list>
 
-<!------------------------------------------- Editing ------------------------------------------------------------>
+<!-------------------------------------------Landlord Editing ------------------------------------------------------------>
 
-<ion-list *ngIf="fns.getEditMode()" >
+<ion-list *ngIf="(fns.editMode | async) && (fns.getRole() === 'landlord')" >
   <ion-item-sliding #item *ngFor="let apt of (apts | async)">
     <ion-item>
       <a class="row" >
         <span class="col left" >{{apt?.name}}</span>
-        <span *ngIf="fns.getRole() === 'tenant'" class="col right" >{{ apt?.tenantRooms?.length || 0}} Rooms</span>
-        <span *ngIf="fns.getRole() === 'landlord'" class="col right" >{{ apt?.landlordRooms?.length || 0}} Rooms</span>
+        <span class="col right" >{{ apt?.landlordRooms?.length || 0}} Rooms</span>
       </a>
     </ion-item>
     <ion-item-options side="left">
@@ -33,5 +33,22 @@
     </ion-item-options>
     -->
   </ion-item-sliding>
-  <div *ngIf="fns.getRole() === 'landlord'" class="center" ><button ion-button round small (click)="add()" >Add Apartment</button></div>
+  <div class="center" ><button ion-button round small (click)="add()" >Add Apartment</button></div>
 </ion-list>
+
+<!-------------------------------------------Tenant Searching------------------------------------------------------------>
+<!--
+<ion-toolbar no-border-top *ngIf="(fns.editMode | async) && (fns.getRole() === 'tenant')" >
+  <ion-searchbar color="primary"  [(ngModel)]="queryText"  (ionInput)="searchUpdated.next(queryText)" placeholder="Search for properties">
+  </ion-searchbar>
+</ion-toolbar>
+<ion-list *ngIf="(fns.editMode | async) && (fns.getRole() === 'tenant')" >
+  <div *ngFor="let apt of (searchResults | async)" style="border-bottom: 1px solid gray;" >
+    <button ion-item no-lines (click)="selectRoom(apt)" >
+      <h3>{{apt.name}}</h3>
+      <p>{{apt.street}} &mdash; {{apt.city}}, {{apt.county}}</p>
+    </button>
+  </div>
+
+</ion-list>
+-->

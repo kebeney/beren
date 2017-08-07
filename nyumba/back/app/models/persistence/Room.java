@@ -36,15 +36,19 @@ public class Room {
     @Column(nullable = true)
     private Set<Tenant> personList;
 
+    @ManyToMany(targetEntity = Users.class, mappedBy = "tenantRooms", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonBackReference
+    private Set<Users> selfRegisteredTenants;
+
     @OneToMany(targetEntity = Bill.class,   mappedBy = "room", fetch = FetchType.LAZY, cascade = {CascadeType.ALL}, orphanRemoval = true)
     @Column(nullable = true)
     @JsonManagedReference
     @OrderBy("txnTmEpochMilli ASC")
     private SortedSet<Bill> bills;
 
-    @ManyToMany(targetEntity = Users.class, fetch = FetchType.LAZY)
-    @JsonBackReference
-    private Set<Users> tenantsSelectedRoom;
+//    @ManyToMany(targetEntity = Users.class, fetch = FetchType.LAZY)
+//    @JsonBackReference
+//    private Set<Users> tenantsSelectedRoom;
 
     @Transient
     private Long parentId;
@@ -157,17 +161,17 @@ public class Room {
         this.deleted = deleted;
     }
 
-    public Set<Users> getTenantsSelectedRoom() {
-        return tenantsSelectedRoom;
-    }
-
-    public void settenantsSelectedRoom(Set<Users> tenantSelectedRoom) {
-        this.tenantsSelectedRoom = tenantSelectedRoom;
-    }
-    public void addTenantsSelectedRoom(Users user){
-        if(this.tenantsSelectedRoom == null){
-            this.tenantsSelectedRoom = new HashSet<>();
-        }
-        this.tenantsSelectedRoom.add(user);
-    }
+//    public Set<Users> getTenantsSelectedRoom() {
+//        return tenantsSelectedRoom;
+//    }
+//
+//    public void settenantsSelectedRoom(Set<Users> tenantSelectedRoom) {
+//        this.tenantsSelectedRoom = tenantSelectedRoom;
+//    }
+//    public void addTenantsSelectedRoom(Users user){
+//        if(this.tenantsSelectedRoom == null){
+//            this.tenantsSelectedRoom = new HashSet<>();
+//        }
+//        this.tenantsSelectedRoom.add(user);
+//    }
 }

@@ -12,7 +12,8 @@ export const componentReducer = (state = new State(), action: any) => {
           console.log('Handling successful request...');
             //Handle only 200 ok responses here.
           let pl = action.payload;
-          let data = pl.data; console.log('data is: ',data);
+          let data = pl.data;
+          console.log('data is: ',data);
 
           if(typeof action.payload.tgt == 'string' && action.payload.tgt == 'search'){
             //replace search object and leave
@@ -28,6 +29,7 @@ export const componentReducer = (state = new State(), action: any) => {
           if( typeof pl.msg == 'string'){
             nextState['msg'] = pl.msg;
           }
+          console.log('nextState:',nextState);
           return nextState;
         }
         case HTTP_CALL: {
@@ -79,6 +81,7 @@ export const componentReducer = (state = new State(), action: any) => {
     }
 };
 function findAndUpdateArray(path:Array<any>,obj:any,objToPush:object): any[]{
+
     let baseObj = obj ;
     for(let i = 0 ; i < path.length; i++){
         let p = path[i];

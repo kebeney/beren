@@ -43,7 +43,7 @@ public class ObjectRetrieve {
         logger.debug("Type:"+args.get(Args.classType)+" parentId: "+parentId);
         //NB: Don't call the validator here. We don't need to validate anything because the get request does not have a body.
         //args = erenValidator.getArgs(req,args);
-        List result = null;
+        List result;
 
         if(parentId == null){
             //If parentId is null, then we are selecting all parents
@@ -52,6 +52,9 @@ public class ObjectRetrieve {
             result = jpaApi.em().createNamedQuery("select "+types.handleType(args).getClass().getSimpleName()+" by parentId").setParameter("parentId",parentId).getResultList();
 
         }
+
+        Users user = (Users)args.get(Args.user);
+        logger.debug("Pulled user is:"+user.getId());
 //        Users user = (Users)args.get(Args.user);
 //        if(user.getRole().equalsIgnoreCase("tenant") && result.size() > 0){
 //            if(result.get(0) instanceof Building){

@@ -1,6 +1,9 @@
 package models;
 
 import com.google.inject.Inject;
+import models.persistence.Building;
+import models.persistence.Room;
+import models.persistence.person.Users;
 import play.Logger;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -8,7 +11,7 @@ import security.ErenValidator;
 import security.Secured;
 import util.*;
 
-import java.util.Map;
+import java.util.*;
 
 import static play.libs.Json.toJson;
 import static play.mvc.Results.*;
@@ -56,15 +59,48 @@ public class ObjectPersist {
         args = erenValidator.getArgs(req, args);
 
         //Validate and bind request to the user object
-        Object user = erenValidator.validate(types.handleType(args), args);
+        Users user = (Users)erenValidator.validate(types.handleType(args), args);
 
         if(user == null) return badRequest(mapper.toJson(new ClientMsg("Invalid request."),args));
 
         //Authenticate the mapped & validated user object
         user = secured.login(user, args);
-        logger.debug("User is: "+user);
 
+        if(user != null && user.getRole().equalsIgnoreCase("tenant")) {
+            user = this.mapTenant(user);
+        }
         //If authenticator returns null, respond with unauthorized else respond with user data.
         return user == null ? unauthorized("Invalid username or password") : ok(mapper.toJson(new ClientMsg("loginSuccess",user),args));
+    }
+    private Users mapTenant(Users user){
+        Set<Room> rooms = user.getTenantRooms();
+        List<Building> apts = new ArrayList();
+
+        //For each room
+        for(Room r: rooms){
+            //Find building and add room.
+            Building building;
+            int idx = apts.indexOf(r.getBuilding());
+            //If building is not in the array yet, create it and put it into array.
+            if(idx < 0){
+                building = new Building();
+                building = (Building)this.mapper.mapFields(r.getBuilding(),building);
+
+                apts.add(building);
+            }else{
+                building = apts.get(idx);
+            }
+            building.addTenantRoom(r);
+        }
+
+        Set<Building> buildings = new HashSet<>();
+        buildings.addAll(apts);
+        Users user1 = new Users();
+        user1 = (Users)mapper.mapFields(user,user1);
+        user1.setApts(buildings);
+        if(user1.getId() == null){
+            throw new IllegalStateException("Mapping did not work properly. Please check what is wrong with the mapping...");
+        }
+        return user1;
     }
 }

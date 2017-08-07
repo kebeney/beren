@@ -48,8 +48,8 @@ public class UserLogic {
                     logger.debug("Attempting to reset password through user update flow is not allowed.");
                     throw new UnsupportedOperationException();
                 }
-                Users existing = jpaApi.em().find(Users.class, tmpUser.getId());
-                this.mapper.mapFields(tmpUser,existing);
+                Users existingUser = jpaApi.em().find(Users.class, tmpUser.getId());
+                this.mapper.mapFields(tmpUser,existingUser);
             }
             jpaApi.em().merge(tmpUser);
             //Return encrypted object representing jwt. It will be turned to json after return.

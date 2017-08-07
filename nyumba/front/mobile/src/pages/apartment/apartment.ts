@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {Events, IonicPage, Nav, Navbar, NavController, NavParams} from "ionic-angular";
 import {Store} from "@ngrx/store";
 import {Observable} from "rxjs/Observable";
@@ -6,7 +6,7 @@ import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {QuestionView} from "../../components/question-view/question-view";
 import {FunctionsProvider} from "../../providers/functions";
-import {Apt, aptsPath, EditArgs, State} from "../../interfaces/consts";
+import {Apt, aptModel, aptsPath, EditArgs, State} from "../../interfaces/consts";
 import {UserData} from "../../providers/user-data";
 import {LoginPage} from "../login/login";
 import {RoomsSummaryComponent} from "../../components/rooms-summary/rooms-summary";
@@ -27,10 +27,21 @@ export class ApartmentPage implements OnInit, OnDestroy{
 //  @ViewChild(Nav) nav: Nav;
   private aptSubs: Subject<void> = new Subject<void>();
 
+  //Tenant Search Related
+  public searchUpdated: Subject<string> = new Subject<string>();
+  @Output()  searchChangeEmitter: EventEmitter<any> = new EventEmitter();
+  searchResults: Observable<State>;
+
+
   constructor(public store: Store<State>, public navCtrl: NavController, public navParams: NavParams,
               public fns: FunctionsProvider, public userData: UserData, public events: Events, public nav: Nav){
     this.state = store.select('componentReducer');
-   // this.add
+    //----------------------------------Tenant search related content----------------------------------------
+    this.searchChangeEmitter = <any>this.searchUpdated.asObservable().debounceTime(1000).distinctUntilChanged();
+    this.searchChangeEmitter.takeUntil(this.aptSubs).subscribe((arg:string) => {
+      (typeof arg == 'string' && arg.trim() != '') && this.fns.httpGet('search/'+aptModel+'/'+arg,[],'search');
+    });
+    //---------------------------------Tenant search related content----------------------------------------
   }
   ngOnInit(){
     this.apts = new Observable(observer => {
@@ -95,5 +106,15 @@ export class ApartmentPage implements OnInit, OnDestroy{
     this.aptSubs.next();
     this.aptSubs.complete();
   }
+
+  //Function only used by tenant when searching for properties
+  // selectRoom(apt: Apt){
+  //   this.navCtrl.push(QuestionView,{
+  //     //TODO: Start from here. Figure out what should be returned from the back end and how to get it well displayed on the tenant's page.
+  //     //Special case because we are passing a Room model to the back end but we are receiving an Apt in response.
+  //     questions: this.fns.getQuiz({tgt:'apts',val: null,fill:true, role: 'tenant', options:apt.landlordRooms}),  title: apt.name, model: roomModel, target: 'apts', parentId: apt.id,
+  //     jsonPath: this.jsonPath, urlExt: '/add', uniqId: 'tenant-home'
+  //   });
+  // }
 }
 

@@ -22,15 +22,16 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   user: any;
   apt: any;
   rooms: Observable<State>;
+  balanceObs: Observable<any>;
+  arrayValsObs: Observable<any>;
   private unsub: Subject<void> = new Subject<void>();
-  private childUnsub: Subject<void> = new Subject<void>();
   private prsnSubs: Subscription;
   private prsnPulled = false;
 
 //  sub: any
   @ViewChild(Navbar) navBar: Navbar;
 
-  constructor(store: Store<any>, public navCtrl: NavController, public navParams: NavParams, private fns: FunctionsProvider){
+  constructor(store: Store<State>, public navCtrl: NavController, public navParams: NavParams, private fns: FunctionsProvider){
     this.state = store.select('componentReducer');
     this.user = navParams.get('user');
     this.apt = navParams.get('apt');
@@ -49,6 +50,8 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
       })
     })
   }
+  ionViewWillEnter(){
+  }
   ionViewDidLoad(){
     this.navBar.backButtonClick = () => {
       this.navCtrl.pop(this.fns.navOptionsBack);
@@ -56,7 +59,7 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   }
   add(){
     this.navCtrl.push(QuestionView,{
-      questions: this.fns.getQuiz({tgt:'rooms',val:null,fill:false}), title: 'New Room', model: 'Room', target: 'rooms', parentId: this.apt.id,
+      questions: this.fns.getQuiz({tgt:'rooms',val:null,fill:false,role: this.fns.getRole()}), title: 'New Room', model: 'Room', target: 'rooms', parentId: this.apt.id,
       jsonPath: this.fns.mapPathId(roomsPath,this.user,this.apt,null), urlExt: '/add'
     },this.fns.navOptionsForward)
   }
@@ -64,13 +67,12 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
 
     //           ext,  parentId, data,     model,  jsonPath
     // Example: '/add','apt.id', '$event', 'Room','[user,apt,room]'
-    this.fns.formOutput('/delete','',{'id':room.id},'Room',this.fns.mapPathId(roomsPath,this.user,this.apt,room.id));
+    this.fns.formOutput('/delete','',{'id':room.id},'Room',this.fns.mapPathId(roomsPath,this.user,this.apt,room));
   }
   tapped(room:Room,target:string): void {
+
     switch(target){
       case 'occupants':{
-        this.childUnsub.complete();
-        this.childUnsub = new Subject<void>();
         //Trigger this only if the personList was empty to begin with.
         console.log('Lenght is: '+room.personList.length);
         if(room.personList.length === 0 ) {
@@ -78,22 +80,25 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
           this.prsnSubs = this.getPrsnListListener( room )
         }
 
+        let jsonPath  = this.fns.mapPathId(personsPath,this.user,this.apt,room);
+        this.arrayValsObs = this.getArrValsObs(this.fns.getRole() === landlordRole? 'landlordRooms':'tenantRooms',room.id,'personList');
+
         this.navCtrl.push(GenericView,{
           parent: room, name: 'Tenant', target: 'tenant', title: room.rent + ' Per Month', topInfo: {key: 'Occupants:', value: '' } ,
           topInfoClass: {'tenant-heading': true}, colsToShowArr: [{time:false, value:'firstName'},{time:false, value:'phoneNo'}],
-          jsonPath: this.fns.mapPathId(personsPath,this.user,this.apt,room),
-          arrayVals: this.getArrValsObs(this.fns.mapPathId(personsPath,this.user,this.apt,room),this.user)
+          jsonPath: jsonPath, arrayVals: this.arrayValsObs
         },this.fns.navOptionsForward);
         break;
       }
       case 'payments': {
-        this.childUnsub.complete();
-        this.childUnsub = new Subject<void>();
+
+        let jsonPath = this.fns.mapPathId(paymentsPath,this.user,this.apt,room);
+        this.arrayValsObs = this.getArrValsObs(this.fns.getRole() === landlordRole? 'landlordRooms':'tenantRooms',room.id,'bills');
+        this.balanceObs = this.getBalanceObservable(room);
+
         this.navCtrl.push(GenericView,{
           parent: room, name: 'Payment', target: 'paymentDetails', colsToShowArr: [{time:true, value: 'pmtDtEpochMilli'},{value:'amt'},{value:'type'}],
-          arrayVals: this.getArrValsObs(this.fns.mapPathId(paymentsPath,this.user,this.apt,room),this.user),
-          topInfo: {key: 'Balance', value: this.getBalanceObservable(room) },
-          jsonPath: this.fns.mapPathId(paymentsPath,this.user,this.apt,room)
+          arrayVals: this.arrayValsObs, topInfo: {key: 'Balance', value: this.balanceObs }, jsonPath: jsonPath
         },this.fns.navOptionsForward);
         break;
       }
@@ -101,76 +106,62 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   }
   private getBalanceObservable(room:Room): Observable<State> {
     return new Observable(observer => {
+      let role = this.fns.getRole();
       this.state.takeUntil(this.unsub).subscribe((s:State) => {
-        let _room = this.fns.findObj(s['users'], room.id, 'rooms');
+        let _room = this.fns.findObj(s['users'], room.id, role === landlordRole ? 'landlordRooms': 'tenantRooms');
         if(_room != undefined && _room != null){
           observer.next(_room.bills.length > 0 ? _room.bills[_room.bills.length -1].bal: 0)
         }
       })
     })
   }
-  private getArrValsObs(jsonpath:any,user:any): Observable<State> {
-    user = null; //console.log(user);
+
+  /**
+   *
+   * @param {string} name - Name of the object to find from the user object
+   * @param id - id of the same object as the name above. e.g if name is "rooms", this id will refer to the specific room to find.
+   * @param {string} arrName - name of the array object that the listener should listen to. It should be a property of the object found. e.g we could find
+   * a room object and then listen to the bills array in that room object. This arrName should refer to the bills array.
+   * @returns {Observable<State>}
+   */
+  private getArrValsObs(name:string,id:any, arrName:string): Observable<State> {
     return new Observable(observer => {
-      this.state.takeUntil(this.unsub || this.childUnsub).subscribe((s:any) => {
+      this.state.takeUntil(this.unsub).subscribe((s:State) => {
         if(s.users.length > 0){
-          observer.next(this.getArray(jsonpath,s.users[0]));
+          //This will find an object not an array. So we will need to reference the target array which is a property of this object.
+          let obj = this.fns.findObj(s.users,id,name);
+          if(typeof obj !== 'undefined' && obj != null){
+            observer.next(obj[arrName]);
+          }
         }
       })
     })
   }
   //This is a special case function to listen and get the new list of bills when a new tenant is added to an empty room.
-  private getPrsnListListener(roomArg:any): Subscription {
+  private getPrsnListListener(roomArg:Room): Subscription {
     return this.state.takeUntil(this.unsub).subscribe((s:State) => {
-
+      let role = this.fns.getRole();
       let user = s.users[0];
       let apt = this.fns.findObj(s['users'], this.apt.id, 'apts');
-      let _room = this.fns.findObj(s['users'], roomArg.id, 'rooms');
+      console.log('Finding room');
+      let _room = this.fns.findObj(s['users'], roomArg.id, role === landlordRole ? 'landlordRooms':'tenantRooms');
 
-      //console.log('apt is: '+apt);
-      //console.log('room is: '+_room);
       if( apt != null && _room != null && _room['personList'].length === 1 && !this.prsnPulled){
         this.prsnPulled  = true;
-        console.log('length is: '+_room['personList'].length);
-        console.log('step 3');
-        console.log('triggered the get...');
         this.fns.httpGet('get/'+billModel+'/'+_room.id, this.fns.mapPathId(paymentsPath,user,apt,_room), 'bills');
         this.prsnSubs.unsubscribe();
       }
     });
   }
-//  formatDetails(bills): any[]{
-//    let mapped = bills.map( obj => {obj['pmtDtEpochMilli'] = this.datePipe.transform(obj['pmtDtEpochMilli']); return obj});
-  //let myArray = new Array();
-  //console.log(JSON.stringify(mapped));
-//    return mapped;
-//  }
   ionViewWillLeave(){
     //this.sub.unsubscribe();
   }
-  getArray(path:any,user:any): any[]{
-    let baseObj = user ;
-    for(let i = 0 ; i < path.length; i++){
-      let p = path[i+1];
-      if(p.id === null || p.id === '' || i === path.length - 1 ){
-        if(baseObj === undefined || baseObj[p.key] === undefined){
-          return [];
-        }
-        else {
-          return baseObj[p.key];
-        }
-      }else{
-        baseObj = baseObj[p.key];
-        //find obj for given id within current obj
-        baseObj = baseObj.find((arg:any) => arg.id == p.id )
-      }
-    }
-    return baseObj
-  }
   ngOnDestroy(){
     console.log('Destroying room summary observables');
-  //  this.unsub.next();
-  //  this.unsub.complete();
+    this.unsub.next();
+    this.unsub.complete();
+    this.unsub.unsubscribe();
+   // this.unsub.
   }
 
 }

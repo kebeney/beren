@@ -3,6 +3,7 @@ package models.persistence.person;
 import com.fasterxml.jackson.annotation.*;
 import models.persistence.Bill;
 import models.persistence.Building;
+import models.persistence.Room;
 import play.data.validation.Constraints;
 
 import javax.persistence.*;
@@ -46,6 +47,10 @@ public class Users extends Tenant {
     @JsonManagedReference
     @ManyToMany(targetEntity = Building.class, fetch = FetchType.LAZY)
     private Set<Building> apts;
+
+    @ManyToMany(targetEntity = Room.class, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private Set<Room> tenantRooms;
 
     @Transient
     @JsonIgnore
@@ -136,5 +141,22 @@ public class Users extends Tenant {
             this.bills = new HashSet<>();
         }
         this.bills.add(bill);
+    }
+
+    public Set<Room> getTenantRooms() {
+        return tenantRooms;
+    }
+
+    public void setTenantRooms(Set<Room> tenantRooms) {
+        this.tenantRooms = tenantRooms;
+    }
+    public void addTenantRoom(Room room){
+        if(this.tenantRooms == null){
+            this.tenantRooms = new HashSet<>();
+        }
+        this.tenantRooms.add(room);
+    }
+    public void removeTenantRoom(Room room){
+        this.tenantRooms.remove(room);
     }
 }

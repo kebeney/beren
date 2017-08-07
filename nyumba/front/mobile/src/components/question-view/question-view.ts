@@ -39,7 +39,7 @@ export class QuestionView {
     this.navCtrl.pop(this.fns.navOptionsBack);
 
     //So far only one uniqueId is being used which is uniqId: 'tenant-home' from tenant-home.ts file.
-    if(this.uniqId != null && this.uniqId == 'tenant-home'){
+    if(this.uniqId === 'tenant-home'){
       //this.fns.editMode = false;
       this.fns.setEditMode(false);
     }

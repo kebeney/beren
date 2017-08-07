@@ -1,4 +1,4 @@
-import {HTTP_CALL, QuizPayLType, SET_EDIT_MODE, State} from "../interfaces/consts";
+import {HTTP_CALL, landlordRole, QuizPayLType, SET_EDIT_MODE, State} from "../interfaces/consts";
 import {Store} from "@ngrx/store";
 import {Injectable} from "@angular/core";
 import {AlertController, Events, Loading, LoadingController} from "ionic-angular";
@@ -33,7 +33,7 @@ export class FunctionsProvider{
 //Example: '/add','apt.id', '$event', 'Room','[user,apt,room]'
   formOutput(ext: string, parentId: string, data: any, model: string ,jsonPath: any [], args?: any){
         //console.log(ext,parentId,data,model,jsonPath);
-    //jsonPath = typeof jsonPath === 'undefined' ? [] : jsonPath;
+
     this.validatePath(jsonPath);
     if(typeof args == 'undefined') args = {};
 
@@ -60,7 +60,6 @@ export class FunctionsProvider{
     this.store.dispatch({type: SET_EDIT_MODE, payload: {editMode: value}})
   }
   flipEditMode(){
-    console.log('Flipping editMode');
     this.state.take(1).subscribe(s => {
       this.store.dispatch({type: SET_EDIT_MODE, payload: {editMode: !s.editMode }})
     });
@@ -103,13 +102,47 @@ export class FunctionsProvider{
   getQuiz(pl: QuizPayLType): any[]{
     return this.questions.getQuizOrKeyVal(pl);
   }
+  //mapPathId(path: any[],user: Person,apt: Apt,room:Room): any{
   mapPathId(path: any[],user: any,apt: any,room:any): any{
-    path.forEach(p => {
-      if ( p['key'] === 'users' && user != null ) {p['id'] = user.id}
-      else if ( p['key'] === 'apts'  && apt  != null)  {p['id'] =  apt.id}
-      else if ( p['key'] === 'rooms' && room != null)  {p['id'] = room.id}
+
+    let role = this.getRole();
+    let newPath:any = [];
+
+    path.forEach((obj) => {
+      if( obj['key'] === 'users' ) {
+        if(user !== null) {
+         newPath.push({key:'users',id: user.id})
+        }else{
+          newPath.push({key:'users',id:''});
+        }
+      }
+      else if ( obj['key'] === 'apts' ) {
+        if(apt  !== null) {
+          newPath.push({key:'apts',id: apt.id});
+        }else{
+          newPath.push({key:'apts',id:''})
+        }
+      }
+      else if ( obj['key'] === 'rooms' ){
+        //First rename the key to either landlordRooms or tenantRooms based on role
+        newPath.push({key: (role === landlordRole) ? 'landlordRooms':'tenantRooms', id: (room !== null)? room.id:'' });
+      }else if(obj['key'] === 'landlordRooms'){
+
+        newPath.push({key: 'landlordRooms', id: (room !== null)? room.id:'' });
+
+      }else if(obj['key'] === 'tenantRooms'){
+
+        newPath.push({key: 'tenantRooms', id: (room !== null)? room.id:'' });
+
+      }else if(obj['key'] === 'bills' || obj['key'] === 'personList'){
+        newPath.push(obj);
+      }
+      else{
+        throw new Error('Found unrecognized key:'+obj['key']);
+      }
     });
-    return path;
+    console.log('Returning:'+JSON.stringify(newPath));
+    return newPath;
   }
   showLoader(){
     this.loading = this.ldgCtrl.create({content: 'Please wait...'});

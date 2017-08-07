@@ -86,7 +86,7 @@ public class GeneralController extends Controller {
     private Result handlePostRequest(Args.ACTIONS action){
         Map<Args,Object> args = new HashMap<>();
         args.put(Args.action,action);
-        Result result = badRequest(toJson(new ClientMsg("",new ClientMsg("Something went wrong. Please verify info and try again ."))));
+        Result result = badRequest("Something went wrong. Please verify info and try again .");
         try{
             result = objectPersist.apply(request(), args);
         }catch(Exception e){

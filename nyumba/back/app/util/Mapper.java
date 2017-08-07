@@ -21,16 +21,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-/** This is a  helper class  to help map fields for a source object to a destination object. Only the declared methods
- * (meaning methods explicitly created in the class as opposed to inherited methods) that exist in both the source and destination objects
- * get mapped. Everything else gets ignored. Collection objects are also ignored as well even if declared.
+/** This is a  helper class  to help map fields for a source object to a destination object.
  * Created by kip on 3/25/17.
  */
 public class Mapper {
     private static final Logger.ALogger logger = Logger.of(Mapper.class);
 
     /**
-     * This function will map fields from src to dst during edits. Null fields and non primitives are ignored.
+     * This function will map fields from src to dst. Null fields and non primitives are ignored. Only the declared methods
+     * (meaning methods explicitly created in the class as opposed to inherited methods) that exist in both the source and destination objects
+     * get mapped. Everything else gets ignored. Collection objects are also ignored as well even if declared.
      * @param src - is the source object of the fields to be mapped
      * @param dst - is the destination object where we are mapping the source fields to.
      */
@@ -38,14 +38,16 @@ public class Mapper {
 
         logger.debug("Mapping: "+src.getClass()+"  to "+dst.getClass());
 
-        //Use the annotation based mapper to map the fields.
         if(src.getClass() != dst.getClass() ) {
-            return this.mapUnrelatedObjects(src,dst);
+            logger.warn("Two classes not of same type:"+src.getClass()+":"+dst.getClass()+" - consider using mapUnrelatedObjects function");
         }
 
-        Class tClass = dst.getClass();
+        //Using src class will pull up more methods including those declared by hibernate. So it is preferable to use the dst class which presumably will be a newly declared class
+        //meaning it will not be having any other methods nto explicitly declared.
+        Class dClass = dst.getClass();
+        //Class sClass = src.getClass();
 
-        Method[] methods = ReflectionUtils.getAllDeclaredMethods(src.getClass());
+        Method[] methods = dClass.getMethods();
 
         try{
             for(Method m: methods){
@@ -57,7 +59,7 @@ public class Mapper {
                     if(val != null  && !Collection.class.isAssignableFrom(m.getReturnType())){
                         //Get the target method
                         String setter = "set"+m.getName().substring(3);
-                        Method dstMthd = tClass.getMethod(setter,m.getReturnType());
+                        Method dstMthd = dClass.getMethod(setter,m.getReturnType());
                         //Invoke target method with value
                         dstMthd.invoke(dst,val);
                     }
@@ -71,14 +73,13 @@ public class Mapper {
 
     /**
      * This function is used to map classes that are not instances of each other and potentially not of the same type but just have similarly named functions.
-     * The correct ErenMapField annotation should be used for the
-     * mapping to be successful.
+     * The correct ErenMapField annotation should be used for the mapping to be successful.
      * @param src
      * @param dst
      * @return
      */
-    private Object mapUnrelatedObjects(Object src, Object dst){
-
+    public Object mapUnrelatedObjects(Object src, Object dst){
+        logger.debug("Using annotation based mapper for unrelated objects...");
         Class srcClass = src.getClass();
 
         Method[] srcMethods = ReflectionUtils.getAllDeclaredMethods(src.getClass());
@@ -108,6 +109,7 @@ public class Mapper {
         }
         return dst;
     }
+
     private Method getMethod(Method[] methods, String name){
         for(Method m: methods){
             if(m.getName().equalsIgnoreCase(name)){

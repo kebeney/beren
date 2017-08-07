@@ -106,7 +106,7 @@ export class QuestionsProvider {
   private getAptQuiz(pl:QuizPayLType): QuizType[]{
     if(pl.role == 'tenant' && pl.options){
       let aptQuiz: any = [];
-      let options: Array<any> = []
+      let options: Array<any> = [];
       pl.options.forEach((r:Room) => {options.push({key:r.id,value:r.name})});
        aptQuiz.push( {
          key: 'id',
@@ -170,7 +170,6 @@ export class QuestionsProvider {
   };
   private getPaymentQuiz(pl: QuizPayLType): QuizType[]{
     let tmpPaymentQuiz: any = [];
-    console.log(this.paymentQuiz);
     //If role is landlord/caretaker
     if(pl.role === 'landlord'){
       tmpPaymentQuiz.push(
@@ -194,7 +193,7 @@ export class QuestionsProvider {
         }
       );
     }else {
-      console.log('Unrecognized role supplied: ',pl.role);
+      throw new Error('Unrecognized role:'+pl.role);
     }
 
     this.paymentQuiz.forEach(q => {

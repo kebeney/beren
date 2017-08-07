@@ -59,7 +59,7 @@ export class MainEffects {
         console.log(error);
         let index = this.knownCode.indexOf(error.status);
         console.log('Index is:',index);
-        let data = (this.knownCode.indexOf(error.status) && error._body ) ? {msg: error._body } : {msg: 'Server Error Please try later!'};
+        let data = (index > -1 && error._body ) ? {msg: error._body } : {msg: 'Server Error Please try later!'};
         //return Observable.of({ type: SAVE_TO_BACKEND_FAILED, payload: { data: JSON.parse(error._body), jsonPath: action.payload.jsonPath }}) }
         return Observable.of({ type: HTTP_FAILED, payload: { data: data, jsonPath: action.payload.jsonPath , tgt: action.payload.tgt, msg: data.msg} }) }
 

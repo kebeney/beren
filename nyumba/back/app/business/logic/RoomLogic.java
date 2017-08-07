@@ -45,30 +45,41 @@ public class RoomLogic {
         if(action == Args.ACTIONS.EDIT){
             Building building = jpaApi.em().find(Building.class,parentId);
             //jpaApi.em().find()
-            System.out.println("Building is: "+building);
-            System.out.println(toJson(room));
+            logger.debug("Building is: "+building);
+            logger.debug(toJson(room).toString());
             if(user.getRole().equalsIgnoreCase("landlord")){
                 if(room.getId() == null){
                     room.setBuilding(building);
                     setOrder(room);
                     //NB: Don't change this persist to merge. It will cause problems.
                     jpaApi.em().persist(room);
-                    building.addLandLordRoom(room);
+                    building.addLandlordRoom(room);
                     return room;
                 }else{
                     //We are updating this room. role of user is landlord
-                    Room existing = jpaApi.em().find(Room.class,room.getId());
-                    return this.mapper.mapFields(room,existing);
+                    Room existingRoom = jpaApi.em().find(Room.class,room.getId());
+                    return this.mapper.mapFields(room,existingRoom);
 
                 }
             }else if(user.getRole().equalsIgnoreCase("tenant")){
                 Room existing = jpaApi.em().find(Room.class,room.getId());
                 //We are associating tenant with room. Associate with building as well.
-                user.addApt(building);
-                building.addUsers(user);
+                //user.addApt(building);
+                user.addTenantRoom(existing);
+                //building.addUsers(user);
 
-                building.addTenantRoom(existing);
-                return building;
+                //building.addTenantRoom(existing);
+                //Special case because we are receiving a Room model but we are return a building back to caller.
+                //TODO: start from here. Things are being returned but start from setting all fields correctly.
+                //TODO: then figure out how to do the mapping after tenant successfull login. and test tenant delete of room and delete of building.
+                Building tmpBuilding = new Building();
+                tmpBuilding = (Building)this.mapper.mapFields(building,tmpBuilding);
+                for(Room r: user.getTenantRooms()){
+                    if(r.getBuilding().equals(building)){
+                        tmpBuilding.addTenantRoom(r);
+                    }
+                }
+                return new ClientMsg("",tmpBuilding);
             }else{
                 throw new IllegalStateException("Unrecognized role supplied"+user.getRole());
             }

@@ -8,7 +8,7 @@ import {Observable} from "rxjs/Observable";
 
 import {Subject} from "rxjs/Subject";
 import {FunctionsProvider} from "../../providers/functions";
-import {Apt, aptModel, aptsPath, EditArgs, roomModel, State} from "../../interfaces/consts";
+import {Apt, aptModel, aptsPath, roomModel, State} from "../../interfaces/consts";
 import {UserData} from "../../providers/user-data";
 import {LoginPage} from "../login/login";
 import {RoomsSummaryComponent} from "../../components/rooms-summary/rooms-summary";
@@ -25,7 +25,7 @@ export class TenantHomePage implements OnInit, OnDestroy{
   jsonPath: Array<{key: any,id: any}> ;
   state: Observable<State>;
   apts: Observable<any>;
-  editArgs: EditArgs;
+  //editArgs: EditArgs;
   @ViewChild(Navbar) navBar: Navbar;
 //  @ViewChild(Nav) nav: Nav;
   private aptSubs: Subject<void> = new Subject<void>();
@@ -48,10 +48,9 @@ export class TenantHomePage implements OnInit, OnDestroy{
         if( s.users instanceof Array && s.users.length > 0 && s.users[0]['apts'] instanceof Array){
           this.user = s.users[0];
           this.jsonPath = this.fns.mapPathId(aptsPath,this.user,null,null);
-          this.editArgs = { title: 'Edit Apartment', model: 'Building',target:'apts',parentId:this.user.id,jsonPath:this.jsonPath }
+         // this.editArgs = { title: 'Edit Apartment', model: 'Building',target:'apts',parentId:this.user.id,jsonPath:this.jsonPath };
           observer.next(s.users[0]['apts']);
         }
-
       })
     });
     this.searchResults = new Observable(observer => {
@@ -83,13 +82,17 @@ export class TenantHomePage implements OnInit, OnDestroy{
       user: this.user, apt: apt
     },this.fns.navOptionsForward);
   }
-  selectRoom(apt: Apt){ //console.log('I am tapped',JSON.stringify(apt));
+  selectRoom(apt: Apt){
+    console.log('options are',apt.landlordRooms);
     this.navCtrl.push(QuestionView,{
       //TODO: Start from here. Figure out what should be returned from the back end and how to get it well displayed on the tenant's page.
       //Special case because we are passing a Room model to the back end but we are receiving an Apt in response.
-      questions: this.fns.getQuiz({tgt:'apts',val: null,fill:true, role: 'tenant', options:apt.tenantRooms}),  title: apt.name, model: roomModel, target: 'apts', parentId: apt.id,
+      questions: this.fns.getQuiz({tgt:'apts',val: null,fill:true, role: 'tenant', options:apt.landlordRooms}),  title: apt.name, model: roomModel, target: 'apts', parentId: apt.id,
       jsonPath: this.jsonPath, urlExt: '/add', uniqId: 'tenant-home'
     });
+  }
+  remove(apt: Apt){
+    this.fns.formOutput('/delete','',{'id':apt.id},'Building',this.fns.mapPathId(aptsPath,this.user,apt,null));
   }
   ionWillLeave(){}
   ngOnDestroy(){

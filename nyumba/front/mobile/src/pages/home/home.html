@@ -24,12 +24,8 @@
 <ion-content>
   <page-login *ngIf="!loggedIn" ></page-login>
 
-  <!--
   <page-tenant-home *ngIf="fns.getRole() === 'tenant'" ></page-tenant-home>
 
   <page-apartment *ngIf="fns.getRole() === 'landlord'" ></page-apartment>
-
-  -->
-  <page-apartment *ngIf="loggedIn" ></page-apartment>
 
 </ion-content>

@@ -33,6 +33,7 @@ public class BuildingLogic {
 
         Args.ACTIONS action = (Args.ACTIONS)args.get(Args.action);   Object obj = args.get(Args.mappedObj);
         Building tmpBuilding = (Building)obj;
+        Users user = commonLogic.getUser(args);
 
         logger.debug("Building - Action: "+action);
         if(action == Args.ACTIONS.EDIT){
@@ -40,7 +41,7 @@ public class BuildingLogic {
             if(tmpBuilding.getId() == null){
                 //New building.
                 jpaApi.em().persist(tmpBuilding);
-                Users user = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
+                //Users user = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
                 tmpBuilding.addUsers(user);
                 user.addApt(tmpBuilding);
                 jpaApi.em().merge(user);
@@ -51,26 +52,28 @@ public class BuildingLogic {
                 return this.mapper.mapFields(tmpBuilding,existing);
             }
         }else if(action == Args.ACTIONS.DELETE){
-            Users initiator = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
+            //Users initiator = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
             Building existing = jpaApi.em().find(Building.class,tmpBuilding.getId());
            // building = jpaApi.em().find(Building.class,building.getId());
 
             logger.debug("Building: "+toJson(tmpBuilding).toString());
             logger.debug("Existing is: "+toJson(existing).toString());
 
-            if(initiator.getRole().equalsIgnoreCase("tenant")){
+            if(user.getRole().equalsIgnoreCase("tenant")){
 
                 //First dissociate all rooms with the tenant.
-                existing.getTanantRooms().clear();
-                jpaApi.em().merge(existing);
+                //existing.getTenantRooms().clear();
+                //jpaApi.em().merge(existing);
+                user.getTenantRooms().clear();
+                jpaApi.em().merge(user);
 
                 //Then dissociate the building with the tenant.
-                initiator.removeApt(existing);
-                jpaApi.em().merge(initiator);
+                user.removeApt(existing);
+                jpaApi.em().merge(user);
 
-            }else if(initiator.getRole().equalsIgnoreCase("landlord")){
+            }else if(user.getRole().equalsIgnoreCase("landlord")){
                 //Perform landlord logic
-                for(Room r: existing.getLandLordRooms()){
+                for(Room r: existing.getLandlordRooms()){
                     this.commonLogic.archiveUsers(r);
                 }
                 for(Users u: existing.getUsers()){
@@ -79,7 +82,7 @@ public class BuildingLogic {
                 jpaApi.em().remove(existing);
 
             }else{
-                throw new IllegalStateException("Role for given user was not found: "+initiator.getUsername());
+                throw new IllegalStateException("Role for given user was not found: "+user.getUsername());
             }
 
             //This has to be nested because of how the front end interprets the message. It needs to be inside the data field.

@@ -13,7 +13,7 @@ import java.util.Set;
 //@NamedQuery(query = "select b.rooms from Building b where b.id = :parentId order by ord desc ", name = "select Room by parentId")
 @NamedQueries({
         //@NamedQuery(query = "select b from Building b where b.name like = :parentId order by ord", name = "search Building for match string"),
-        @NamedQuery(query = "select b.rooms from Building b where b.id = :parentId order by ord", name = "select Room by parentId"),
+        @NamedQuery(query = "select b.landlordRooms from Building b where b.id = :parentId order by ord", name = "select Room by parentId"),
         @NamedQuery( query = "select b from Building b where CONCAT_WS('|',b.name,b.street,b.city,b.county,b.country) like :searchString " , name = "search Building match anyColumn" )
 })
 //@JsonFilter("filterOutAllExceptBuilding")
@@ -47,19 +47,20 @@ public class Building {
     @Column(nullable = true)
     @JsonManagedReference
     @OrderBy("ord ASC")
-    Set<Room> landLordRooms;
+    private Set<Room> landlordRooms;
 
-    @ManyToMany(targetEntity = Room.class, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    //@OneToMany(targetEntity = Room.class, mappedBy = "building", fetch = FetchType.LAZY, cascade = {CascadeType.ALL}, orphanRemoval = true)
+    //@JsonManagedReference
+    @Transient
     private Set<Room> tenantRooms;
 
     @JsonBackReference
     @ManyToMany(targetEntity = Users.class, mappedBy = "apts")
-    Set<Users> users;
+    private Set<Users> users;
 
     @Override
     public boolean equals(Object other){
-        return other instanceof Building && ((Building)other).id == this.id;
+        return other instanceof Building && ((Building)other).id.equals(this.id);
     }
 
     public Long getId() {
@@ -129,23 +130,6 @@ public class Building {
         }
     }
 
-    public Set<Room> getLandLordRooms() {
-        return landLordRooms;
-    }
-
-    public void setLandLordRooms(Set<Room> landLordRooms) {
-        this.landLordRooms = landLordRooms;
-    }
-    public void addLandLordRoom(Room room){
-        if(this.landLordRooms == null){
-            this.landLordRooms = new HashSet<>();
-        }
-        this.landLordRooms.add(room);
-    }
-    public void removeLandLordRoom(Room room){
-        this.landLordRooms.remove(room);
-    }
-
     public Set<Room> getTenantRooms() {
         return tenantRooms;
     }
@@ -161,6 +145,24 @@ public class Building {
     }
     public void removeTenantRoom(Room room){
         this.tenantRooms.remove(room);
+    }
+
+    public Set<Room> getLandlordRooms() {
+        return landlordRooms;
+    }
+
+    public void setLandlordRooms(Set<Room> landlordRooms) {
+        this.landlordRooms = landlordRooms;
+    }
+
+    public void addLandlordRoom(Room room){
+        if(this.landlordRooms == null){
+            this.landlordRooms = new HashSet<>();
+        }
+        this.landlordRooms.add(room);
+    }
+    public void removeLandlordRoom(Room room){
+        this.landlordRooms.remove(room);
     }
 
     public Long getParentId() {
