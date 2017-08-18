@@ -51,6 +51,10 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
     })
   }
   ionViewWillEnter(){
+    console.log('Entering RoomSummaryPage..');
+    if(!this.fns.isLoggedIn()){
+      this.navCtrl.popToRoot();
+    }
   }
   ionViewDidLoad(){
     this.navBar.backButtonClick = () => {
@@ -123,11 +127,12 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
     });
   }
   ionViewWillLeave(){
+    console.log('Leaving RoomSummaryPage')
     //this.sub.unsubscribe();
   }
   ngOnDestroy(){
     console.log('Destroying room summary observables');
-    this.destroy.next();
+    //this.destroy.next();
     this.destroy.complete();
     this.destroy.unsubscribe();
    // this.unsub.

@@ -98,14 +98,9 @@ private showing: boolean = false;
 //TODO: can as well remove this function and just use the generic objectObservable
   getUserObservable(): Observable<State>{
     if(this.user == null){
-      console.log('Creating user observable');
-      this.user = new Observable(observer => {
-        this.state.takeUntil(this.destroy).subscribe(s => {
-          console.log('Next user...');
-          observer.next(s['users'][0]);
-        });
-      }) ;
+      this.user = this.state.takeUntil(this.destroy).map(s => { console.log('Mapping..'); return s.users[0] }).share().publishReplay(1).refCount();
     }
+    console.log('Returning usrObs..');
     return this.user;
   }
   getObjectObservable(name:string,id:any,destroy: Subject<any>){

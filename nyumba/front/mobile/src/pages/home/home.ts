@@ -28,6 +28,12 @@ export class HomePage implements OnInit, OnDestroy{
     this.isLoggedIn.take(1).subscribe(v => { loggedIn = v; });
     if(!loggedIn) this.fns.restoreUser();
   }
+  ionViewWillEnter(){
+    console.log('Entering HomePage..');
+  }
+  ionViewWillLeave(){
+    console.log('Leaving HomePage..');
+  }
   ngOnDestroy(){
     console.log('Destroying the home page');
   }

@@ -29,6 +29,15 @@ export class QuestionView {
     this.uniqId = navParams.get('uniqId');
 
   }
+  ionViewWillEnter(){
+    console.log('Entering QuestionView..');
+    if(!this.fns.isLoggedIn()){
+      this.navCtrl.popToRoot();
+    }
+  }
+  ionViewWillLeave(){
+    console.log('Leaving QuestionView');
+  }
   ionViewDidLoad(){
     // this.navBar.backButtonClick = () => {
     //   this.navCtrl.pop(this.sf.navOptionsBack);

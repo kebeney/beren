@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 
-import { Events, MenuController, Nav, Platform } from 'ionic-angular';
+import {Events, MenuController, Nav, Platform} from 'ionic-angular';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { Storage } from '@ionic/storage';
@@ -14,7 +14,6 @@ import { TutorialPage } from '../pages/tutorial/tutorial';
 import { SupportPage } from '../pages/support/support';
 
 import { ConferenceData } from '../providers/conference-data';
-import { UserData } from '../providers/user-data';
 import {Store} from "@ngrx/store";
 import {FunctionsProvider} from "../providers/functions";
 import {SchedulePage} from "../pages/schedule/schedule";
@@ -37,6 +36,7 @@ export interface PageInterface {
   templateUrl: 'app.template.html'
 })
 export class ConferenceApp {
+  //TODO: get back to this @ViewChild(Tabs) tabs: Tabs;
   // the root nav is a child of the root app component
   // @ViewChild(Nav) gets a reference to the app's root nav
   @ViewChild(Nav) nav: Nav;
@@ -70,7 +70,6 @@ export class ConferenceApp {
 
   constructor(
     public events: Events,
-    public userData: UserData,
     public menu: MenuController,
     public platform: Platform,
     public confData: ConferenceData,
@@ -133,15 +132,6 @@ export class ConferenceApp {
 
   listenToLoginEvents() {
     this.isLoggedIn = this.fns.getLoginObservable();
-    // this.isLoggedIn = new Observable(observer => {
-    //   this.state.subscribe(s => {
-    //     if(s['msg'] !== null && s['msg'] === 'loginComplete'){
-    //       observer.next(true);
-    //     }else if(s['msg'] != null && s['msg'] === 'logoutComplete'){
-    //       observer.next(false);
-    //     }
-    //   });
-    // });
   }
 
   platformReady() {

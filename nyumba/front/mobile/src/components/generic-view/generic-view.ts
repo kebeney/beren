@@ -80,7 +80,14 @@ export class GenericView implements OnInit{
       this.navCtrl.pop(this.fns.navOptionsBack);
     }
   }
+  ionViewWillEnter(){
+    console.log('Entering GenericView..');
+    if(!this.fns.isLoggedIn()){
+      this.navCtrl.popToRoot();
+    }
+  }
    ionViewWillLeave(){
+    console.log('Leaving GenericView..');
      //this.sf.cancelEditing(this.target);
      //this.valObjArr.
      //this.topInfo['value'] = null;

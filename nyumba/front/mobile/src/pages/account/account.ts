@@ -20,7 +20,7 @@ export class AccountPage {
   constructor(public alertCtrl: AlertController, public navCtrl: NavController,public events: Events, public fns: FunctionsProvider,
               public store: Store<State>) {
     this.state = store.select("componentReducer");
-    this.user  = this.fns.getUserObservable();
+    this.user  = this.fns.getUserObservable().map(u => u);
   }
   ionViewDidEnter() {
     this.user.take(1).subscribe(u => {
@@ -46,5 +46,11 @@ export class AccountPage {
 
   support() {
     this.navCtrl.push('SupportPage');
+  }
+  ionViewWillEnter(){
+    console.log('Entering AccountsPage..');
+  }
+  ionViewWillLeave(){
+    console.log('Leaving AccountsPage..');
   }
 }
