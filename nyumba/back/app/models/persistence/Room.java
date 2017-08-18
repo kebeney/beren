@@ -161,17 +161,4 @@ public class Room {
         this.deleted = deleted;
     }
 
-//    public Set<Users> getTenantsSelectedRoom() {
-//        return tenantsSelectedRoom;
-//    }
-//
-//    public void settenantsSelectedRoom(Set<Users> tenantSelectedRoom) {
-//        this.tenantsSelectedRoom = tenantSelectedRoom;
-//    }
-//    public void addTenantsSelectedRoom(Users user){
-//        if(this.tenantsSelectedRoom == null){
-//            this.tenantsSelectedRoom = new HashSet<>();
-//        }
-//        this.tenantsSelectedRoom.add(user);
-//    }
 }

@@ -131,6 +131,7 @@ public class Building {
     }
 
     public Set<Room> getTenantRooms() {
+        tenantRoomsNotNull();
         return tenantRooms;
     }
 
@@ -138,16 +139,15 @@ public class Building {
         this.tenantRooms = tenantRooms;
     }
     public void addTenantRoom(Room room){
-        if(this.tenantRooms == null){
-            this.tenantRooms = new HashSet<>();
-        }
+        tenantRoomsNotNull();
         this.tenantRooms.add(room);
     }
     public void removeTenantRoom(Room room){
-        this.tenantRooms.remove(room);
+        if(tenantRooms != null) this.tenantRooms.remove(room);
     }
 
     public Set<Room> getLandlordRooms() {
+        landlordRoomsNotNull();
         return landlordRooms;
     }
 
@@ -156,12 +156,11 @@ public class Building {
     }
 
     public void addLandlordRoom(Room room){
-        if(this.landlordRooms == null){
-            this.landlordRooms = new HashSet<>();
-        }
+        landlordRoomsNotNull();
         this.landlordRooms.add(room);
     }
     public void removeLandlordRoom(Room room){
+        if(landlordRooms != null)
         this.landlordRooms.remove(room);
     }
 
@@ -171,5 +170,16 @@ public class Building {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    private void landlordRoomsNotNull(){
+        if(this.landlordRooms == null){
+            this.landlordRooms = new HashSet<>();
+        }
+    }
+    private void tenantRoomsNotNull(){
+        if(this.tenantRooms == null){
+            this.tenantRooms = new HashSet<>();
+        }
     }
 }

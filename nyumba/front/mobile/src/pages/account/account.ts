@@ -2,7 +2,11 @@ import { Component } from '@angular/core';
 
 import {AlertController, Events, NavController} from 'ionic-angular';
 
-import { UserData } from '../../providers/user-data';
+import {QuestionView} from "../../components/question-view/question-view";
+import {FunctionsProvider} from "../../providers/functions";
+import {Person, State, usersPath} from "../../interfaces/consts";
+import {Observable} from "rxjs/Observable";
+import {Store} from "@ngrx/store";
 
 
 @Component({
@@ -10,62 +14,37 @@ import { UserData } from '../../providers/user-data';
   templateUrl: 'account.html'
 })
 export class AccountPage {
-  username: string;
+  state: Observable<State>;
+  user: Observable<Person>;
 
-  constructor(public alertCtrl: AlertController, public nav: NavController, public userData: UserData, public events: Events) {
-
+  constructor(public alertCtrl: AlertController, public navCtrl: NavController,public events: Events, public fns: FunctionsProvider,
+              public store: Store<State>) {
+    this.state = store.select("componentReducer");
+    this.user  = this.fns.getUserObservable();
   }
-
-  ngAfterViewInit() {
-    this.getUsername();
+  ionViewDidEnter() {
+    this.user.take(1).subscribe(u => {
+      if(!u){  this.fns.restoreUser(); }
+    });
   }
 
   updatePicture() {
     console.log('Clicked to update picture');
   }
+  resetPwd(){
 
-  // Present an alert with the current username populated
-  // clicking OK will update the username and display it
-  // clicking Cancel will close the alert and do nothing
-  changeUsername() {
-    let alert = this.alertCtrl.create({
-      title: 'Change Username',
-      buttons: [
-        'Cancel'
-      ]
-    });
-    alert.addInput({
-      name: 'username',
-      value: this.username,
-      placeholder: 'username'
-    });
-    alert.addButton({
-      text: 'Ok',
-      handler: (data: any) => {
-        this.userData.login({username: data.username, claims: ''});
-        this.getUsername();
-      }
-    });
-
-    alert.present();
   }
+  updatePersonalInfo(){
+    let lUser = null;
+    this.user.take(1).subscribe(s => { lUser = s; });
 
-  getUsername() {
-    this.userData.getUsername().then((username) => {
-      this.username = username;
-    });
-  }
-
-  changePassword() {
-    console.log('Clicked to change password');
-  }
-
-  logout() {
-    this.events.publish('home:logout');
-    this.nav.setRoot('LoginPage');
+    this.navCtrl.push(QuestionView,{
+      questions: this.fns.getQuiz({tgt:'user',val:lUser,fill:true,role: this.fns.getRole()}), title: 'Edit Personal Info',
+      model: 'User', target: 'user', parentId: null, jsonPath: this.fns.mapPathId(usersPath,lUser,null,null,), urlExt: '/edit'
+    },this.fns.navOptionsForward);
   }
 
   support() {
-    this.nav.push('SupportPage');
+    this.navCtrl.push('SupportPage');
   }
 }

@@ -26,6 +26,7 @@ export class State {
   msg: any;
   displayMsg: string;
   editMode: boolean = false;
+  isLoggedIn: boolean = false;
 //  message: any = null;
   persist: boolean = false;
   searchResults: Array<any> = [];

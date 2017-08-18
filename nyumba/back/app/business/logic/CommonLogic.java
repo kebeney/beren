@@ -6,6 +6,7 @@ import models.persistence.person.Tenant;
 import models.persistence.person.Users;
 import play.Logger;
 import play.db.jpa.JPAApi;
+import play.db.jpa.Transactional;
 import security.Secured;
 import util.Args;
 import util.Mapper;
@@ -28,23 +29,43 @@ public class CommonLogic {
     }
 
     public void archiveUsers(Room room) {
-        if(room.getPersonList().size() > 0){
-            FormerTenant formerTenant;
-            for(Tenant tenant: room.getPersonList()){
-                formerTenant = new FormerTenant();
-                this.mapper.mapUnrelatedObjects(tenant,formerTenant);
-                formerTenant.setBuildingName(room.getBuilding().getName());
-                formerTenant.setRoomName(room.getName());
-                formerTenant.setBal(room.getBills().last().getBal());
-                jpaApi.em().merge(formerTenant);
+        jpaApi.withTransaction(() -> {
+            if(room.getPersonList().size() > 0){
+                FormerTenant formerTenant;
+                for(Tenant tenant: room.getPersonList()){
+                    formerTenant = new FormerTenant();
+                    this.mapper.mapUnrelatedObjects(tenant,formerTenant);
+                    formerTenant.setBuildingName(room.getBuilding().getName());
+                    formerTenant.setRoomName(room.getName());
+                    formerTenant.setBal(room.getBills().last().getBal());
+                    jpaApi.em().merge(formerTenant);
+                }
             }
-        }
+        });
     }
-    public Users getUser(Map<Args,Object> args){
 
+    public Users getUser(Map<Args,Object> args){
+        return jpaApi.withTransaction(() -> {
+            String username = args.get(Args.userName) == null? null: args.get(Args.userName).toString();
+            if(username != null){
+                return (Users)jpaApi.em().createNamedQuery("select User by username").setParameter("username",username).getSingleResult();
+            }else{
+                throw new IllegalStateException("User was not found. Cannot be allow to proceed without valid user");
+            }
+        });
+    }
+
+    /**
+     * This function is useful when transaction is executing in an asynchronous thread and needs to utilize this function. It keeps the EntityManager in scope for the
+     * currently executing transaction.
+     * @param args - map of arguments
+     * @param jpaApi1 - the entityManager producer to be used for retrieving the user object.
+     * @return user - the object that is returned.
+     */
+    public Users getUser(Map<Args,Object> args,JPAApi jpaApi1){
         String username = args.get(Args.userName) == null? null: args.get(Args.userName).toString();
         if(username != null){
-            return (Users)jpaApi.em().createNamedQuery("select User by username").setParameter("username",username).getSingleResult();
+            return (Users)jpaApi1.em().createNamedQuery("select User by username").setParameter("username",username).getSingleResult();
         }else{
             throw new IllegalStateException("User was not found. Cannot be allow to proceed without valid user");
         }

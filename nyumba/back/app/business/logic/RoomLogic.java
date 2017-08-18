@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static play.libs.Json.toJson;
 
@@ -36,7 +38,7 @@ public class RoomLogic {
 
         Object obj = args.get(Args.mappedObj);
         Room room = (Room)obj;
-        Users user = commonLogic.getUser(args);
+        Users user = commonLogic.getUser(args,jpaApi);
         Long parentId = room.getParentId();
 
         Args.ACTIONS action = (Args.ACTIONS)args.get(Args.action);
@@ -62,16 +64,14 @@ public class RoomLogic {
 
                 }
             }else if(user.getRole().equalsIgnoreCase("tenant")){
-                Room existing = jpaApi.em().find(Room.class,room.getId());
-                //We are associating tenant with room. Associate with building as well.
-                //user.addApt(building);
-                user.addTenantRoom(existing);
-                //building.addUsers(user);
 
-                //building.addTenantRoom(existing);
-                //Special case because we are receiving a Room model but we are return a building back to caller.
-                //TODO: start from here. Things are being returned but start from setting all fields correctly.
-                //TODO: then figure out how to do the mapping after tenant successfull login. and test tenant delete of room and delete of building.
+                //We are associating room to the tenant user
+                Room existing = jpaApi.em().find(Room.class,room.getId());
+
+                user.addTenantRoom(existing);
+
+                //Special case because we are receiving a Room model but we are returning a building back to caller.
+                //TODO: Figure out how to do the mapping after tenant successful login. and test tenant delete of room
                 Building tmpBuilding = new Building();
                 tmpBuilding = (Building)this.mapper.mapFields(building,tmpBuilding);
                 for(Room r: user.getTenantRooms()){
@@ -79,7 +79,7 @@ public class RoomLogic {
                         tmpBuilding.addTenantRoom(r);
                     }
                 }
-                return new ClientMsg("",tmpBuilding);
+                return mapper.toJson(new ClientMsg("",tmpBuilding),args);
             }else{
                 throw new IllegalStateException("Unrecognized role supplied"+user.getRole());
             }
@@ -98,16 +98,11 @@ public class RoomLogic {
 
             }else if(user.getRole().equalsIgnoreCase("tenant")){
                 //We are dissociating user with room.
-                Building building = room.getBuilding();
-                building.getTenantRooms().remove(room);
-                jpaApi.em().merge(building.getTenantRooms());
-                //TODO: If we uncommment this block we will need to coordinate with front end to make sure building is taken out from list
-                //TODO: and not room because the request was for taking out the room. So figure out how to do this coordination.
-//                if(building.getTenantRooms().size() == 0){
-//                    //If no more rooms for building, then remove building from tenant list
-//                    user.removeApt(building);
-//                    return new ClientMsg("",new ClientMsg(building.getId(),"deleted"));
-//                }
+
+                user.getTenantRooms().remove(room);
+                //TODO: If we uncomment this block we will need to coordinate with front end to make sure building is taken out from list
+                //TODO: as well if this was the last room in the building.
+
                 return new ClientMsg("",new ClientMsg(room.getId(),"deleted"));
             }
         }
@@ -117,5 +112,9 @@ public class RoomLogic {
         if(room.getOrd() == null){
             room.setOrd((BigInteger) jpaApi.em().createNativeQuery("select nextval('ord_seq')").getResultList().get(0));
         }
+    }
+
+    public CompletionStage<Object> applyAsync(Map<Args, Object> args) {
+        return CompletableFuture.supplyAsync(() -> jpaApi.withTransaction(() -> this.apply(args)));
     }
 }

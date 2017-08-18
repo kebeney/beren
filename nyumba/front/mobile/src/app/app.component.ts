@@ -50,9 +50,10 @@ export class ConferenceApp {
     { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: HomePage, index: 0, icon: 'home' },
 //    { title: 'Schedule', name: 'TabsPage', component: TabsPage, tabComponent: SchedulePage, index: 1, icon: 'calendar' },
 //    { title: 'Payment', name: 'TabsPage', component: TabsPage, tabComponent: PaymentsPage, index: 0, icon: 'logo-usd' },
-    { title: 'Schedule', name: 'TabsPage', component: TabsPage, tabComponent: SchedulePage, index: 1, icon: 'contacts' },
+    { title: 'Account', name: 'TabsPage', component: TabsPage, tabComponent: AccountPage, index: 1, icon: 'person' },
     { title: 'Map', name: 'TabsPage', component: TabsPage, tabComponent: MapPage, index: 2, icon: 'map' },
-    { title: 'About', name: 'TabsPage', component: TabsPage, tabComponent: AboutPage, index: 3, icon: 'information-circle' }
+    { title: 'About', name: 'TabsPage', component: TabsPage, tabComponent: AboutPage, index: 3, icon: 'information-circle' },
+    { title: 'Schedule', name: 'TabsPage', component: TabsPage, tabComponent: SchedulePage, index: 4, icon: 'contacts' }
   ];
   loggedInPages: PageInterface[] = [
     { title: 'Account', name: 'AccountPage', component: AccountPage, icon: 'person' },
@@ -112,7 +113,7 @@ export class ConferenceApp {
     // don't setRoot again, this maintains the history stack of the
     // tabs even if changing them from the menu
     if(page.logsOut){
-      //logout button explicityly clicked.dispatch the logout message
+      //logout button explicitly clicked.dispatch the logout message
       this.store.dispatch({type: SEND_MESSAGE, payload: {msg: 'logout'}})
     }
     else if (this.nav.getActiveChildNav() && page.index != undefined) {
@@ -131,15 +132,16 @@ export class ConferenceApp {
   }
 
   listenToLoginEvents() {
-    this.isLoggedIn = new Observable(observer => {
-      this.state.subscribe(s => {
-        if(s['msg'] != null && s['msg'] == 'loginComplete'){
-          observer.next(true);
-        }else if(s['msg'] != null && s['msg'] == 'logoutComplete'){
-          observer.next(false);
-        }
-      });
-    });
+    this.isLoggedIn = this.fns.getLoginObservable();
+    // this.isLoggedIn = new Observable(observer => {
+    //   this.state.subscribe(s => {
+    //     if(s['msg'] !== null && s['msg'] === 'loginComplete'){
+    //       observer.next(true);
+    //     }else if(s['msg'] != null && s['msg'] === 'logoutComplete'){
+    //       observer.next(false);
+    //     }
+    //   });
+    // });
   }
 
   platformReady() {

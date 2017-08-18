@@ -2,74 +2,57 @@ import {
   ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output,
   ViewChild
 } from "@angular/core";
-import {Events, Nav, Navbar, NavController, NavParams} from "ionic-angular";
+import { Navbar, NavController} from "ionic-angular";
 import {Store} from "@ngrx/store";
 import {Observable} from "rxjs/Observable";
 
 import {Subject} from "rxjs/Subject";
 import {FunctionsProvider} from "../../providers/functions";
-import {Apt, aptModel, aptsPath, roomModel, State} from "../../interfaces/consts";
-import {UserData} from "../../providers/user-data";
-import {LoginPage} from "../login/login";
+import {Apt, aptModel, aptsPath, Person, roomModel, State} from "../../interfaces/consts";
 import {RoomsSummaryComponent} from "../../components/rooms-summary/rooms-summary";
 import {QuestionView} from "../../components/question-view/question-view";
 
-//@IonicPage()
 @Component({
   selector: 'page-tenant-home',
   templateUrl: 'tenant-home.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TenantHomePage implements OnInit, OnDestroy{
-  user: any;
-  jsonPath: Array<{key: any,id: any}> ;
+  user: Observable<Person>;
   state: Observable<State>;
   apts: Observable<any>;
-  //editArgs: EditArgs;
   @ViewChild(Navbar) navBar: Navbar;
-//  @ViewChild(Nav) nav: Nav;
-  private aptSubs: Subject<void> = new Subject<void>();
+  private destroy: Subject<void> = new Subject<void>();
+  //private aptSubs: Subject<void> = new Subject<void>();
   public searchUpdated: Subject<string> = new Subject<string>();
   @Output()  searchChangeEmitter: EventEmitter<any> = new EventEmitter();
   searchResults: Observable<State>;
 
-  constructor(public store: Store<State>, public navCtrl: NavController, public navParams: NavParams,
-              public fns: FunctionsProvider, public userData: UserData, public events: Events, public nav: Nav){
+  constructor(public store: Store<State>, public navCtrl: NavController, public fns: FunctionsProvider){
     this.state = store.select('componentReducer');
     this.searchChangeEmitter = <any>this.searchUpdated.asObservable().debounceTime(1000).distinctUntilChanged();
-    this.searchChangeEmitter.takeUntil(this.aptSubs).subscribe((arg:string) => {
+    this.searchChangeEmitter.takeUntil(this.destroy).subscribe((arg:string) => {
       (typeof arg == 'string' && arg.trim() != '') && this.fns.httpGet('search/'+aptModel+'/'+arg,[],'search');
     });
   }
   ngOnInit(){
-    this.apts = new Observable(observer => {
-      this.state.takeUntil(this.aptSubs).subscribe((s:State) => {
+    this.user = this.fns.getUserObservable();
 
-        if( s.users instanceof Array && s.users.length > 0 && s.users[0]['apts'] instanceof Array){
-          this.user = s.users[0];
-          this.jsonPath = this.fns.mapPathId(aptsPath,this.user,null,null);
-         // this.editArgs = { title: 'Edit Apartment', model: 'Building',target:'apts',parentId:this.user.id,jsonPath:this.jsonPath };
-          observer.next(s.users[0]['apts']);
-        }
-      })
+    this.apts = new Observable(observer => {
+      this.user.takeUntil(this.destroy).subscribe((u:Person) => {
+        observer.next(u?u['apts']:undefined)
+      });
     });
+
     this.searchResults = new Observable(observer => {
-      this.state.takeUntil(this.aptSubs).subscribe((s:State) => {
+      this.state.takeUntil(this.destroy).subscribe((s:State) => {
         observer.next(s['searchResults']);
       });
     });
   }
   ionViewCanEnter(): Promise<boolean> {
     console.log('Trying to enter tenant-home...');
-    return this.userData.getUser().then(u => {
-      if(u === undefined || u === null ){
-        this.nav.setRoot(LoginPage);
-        //this.navCtrl.setRoot(LoginPage,{},{})
-        return false;
-      }else {
-        return true;
-      }
-    });
+    return Promise.resolve(this.fns.isLoggedIn());
   }
   ionViewDidLoad(){
     this.navBar.backButtonClick = () => {
@@ -77,27 +60,33 @@ export class TenantHomePage implements OnInit, OnDestroy{
     }
   }
   tapped(apt: Apt){
+    let myUser: any;   this.user.take(1).subscribe(u => {myUser = u});
 
     this.navCtrl.push(RoomsSummaryComponent, {
-      user: this.user, apt: apt
+      user: myUser, apt: apt
     },this.fns.navOptionsForward);
   }
   selectRoom(apt: Apt){
     console.log('options are',apt.landlordRooms);
+
     this.navCtrl.push(QuestionView,{
-      //TODO: Start from here. Figure out what should be returned from the back end and how to get it well displayed on the tenant's page.
+      //We are associating the selected room to the user at the back end and then mapping selectedRooms to tenantRooms during object retrieval.
       //Special case because we are passing a Room model to the back end but we are receiving an Apt in response.
       questions: this.fns.getQuiz({tgt:'apts',val: null,fill:true, role: 'tenant', options:apt.landlordRooms}),  title: apt.name, model: roomModel, target: 'apts', parentId: apt.id,
-      jsonPath: this.jsonPath, urlExt: '/add', uniqId: 'tenant-home'
+      jsonPath: this.getJsonPath(), urlExt: '/add', uniqId: 'tenant-home'
     });
   }
   remove(apt: Apt){
-    this.fns.formOutput('/delete','',{'id':apt.id},'Building',this.fns.mapPathId(aptsPath,this.user,apt,null));
+    this.fns.formOutput('/delete','',{'id':apt.id},'Building',this.getJsonPath());
+  }
+  getJsonPath(){
+    let myUser: any; this.user.take(1).subscribe(u => {myUser = u});
+    return this.fns.mapPathId(aptsPath,myUser,null,null);
   }
   ionWillLeave(){}
   ngOnDestroy(){
-    this.aptSubs.next();
-    this.aptSubs.complete();
+    this.destroy.next();
+    this.destroy.complete();
   }
 }
 

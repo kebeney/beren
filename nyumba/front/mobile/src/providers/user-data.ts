@@ -53,38 +53,12 @@ export class UserData {
     }
   };
 
-  login(person: Person): Promise<any> {
-    this.storage.set(this.HAS_LOGGED_IN, true);
-    this.events.publish('user:login');
-    return this.storage.set(localStoredUser,person)
-//    return this.setUser(person);
-  };
-  // signup(username: string): void {
-  //   this.storage.set(this.HAS_LOGGED_IN, true);
-  //   this.setUser({username: username, claims: ''});
-  //   //Signup event will just enable the right menu to show up.
-  //   //this.events.publish('user:signup');
-  // };
-
-  // logout() {
-  //   this.storage.remove(localStoredUser).then(() => {
-  //     this.storage.remove(this.HAS_LOGGED_IN).then(()=>{
-  //      // this.storage.remove('username');
-  //       this.store.dispatch({type: LOGOUT, payload: {}});
-  //       this.events.publish('user:logout');
-  //     });
-  //   });
-  // };
-
-  getUsername(): Promise<string> {
-    return this.storage.get(localStoredUser).then((p: Person) => {
-      return p.username;
-    });
-  };
-
-  // setUser(person: Person): Promise<any>{
-  //   return ;
-  // }
+//   login(person: Person): Promise<any> {
+//     this.storage.set(this.HAS_LOGGED_IN, true);
+//     this.events.publish('user:login');
+//     return this.storage.set(localStoredUser,person)
+// //    return this.setUser(person);
+//   };
   getUser(): Promise<Person>  {
     return this.storage.get(localStoredUser).then( (user: Person) => {
       return user

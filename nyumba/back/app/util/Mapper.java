@@ -15,7 +15,6 @@ import org.springframework.util.ReflectionUtils;
 import play.Logger;
 import util.Annotations.ErenMapField;
 
-import javax.enterprise.inject.spi.Bean;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,7 +42,7 @@ public class Mapper {
         }
 
         //Using src class will pull up more methods including those declared by hibernate. So it is preferable to use the dst class which presumably will be a newly declared class
-        //meaning it will not be having any other methods nto explicitly declared.
+        //meaning it will not be having any other methods not explicitly declared.
         Class dClass = dst.getClass();
         //Class sClass = src.getClass();
 
@@ -51,10 +50,13 @@ public class Mapper {
 
         try{
             for(Method m: methods){
-
                 //Use java.lang.Class to avoid mapping collections
-                if(m.getName().startsWith("get") && !m.getReturnType().getName().equalsIgnoreCase("java.lang.Class")){
+                if(m.getName().startsWith("get") && m.getDeclaringClass() != Object.class
+                       // && Collection.class.isAssignableFrom(m.getReturnType())
+                        //&& !m.getReturnType().getName().equalsIgnoreCase("java.lang.Class")
+                        ){
                     //Get value from src obj
+                    logger.debug("Mapping:"+m.getName());
                     Object val = m.invoke(src);
                     if(val != null  && !Collection.class.isAssignableFrom(m.getReturnType())){
                         //Get the target method
@@ -174,5 +176,36 @@ public class Mapper {
         }
 
         return args;
+    }
+    public Users mapTenant(Users user){
+        Set<Room> rooms = user.getTenantRooms();
+        List<Building> apts = new ArrayList();
+
+        //For each room
+        for(Room r: rooms){
+            //Find building and add room.
+            Building building;
+            int idx = apts.indexOf(r.getBuilding());
+            //If building is not in the array yet, create it and put it into array.
+            if(idx < 0){
+                building = new Building();
+                building = (Building)this.mapFields(r.getBuilding(),building);
+
+                apts.add(building);
+            }else{
+                building = apts.get(idx);
+            }
+            building.addTenantRoom(r);
+        }
+
+        Set<Building> buildings = new HashSet<>();
+        buildings.addAll(apts);
+        Users user1 = new Users();
+        user1 = (Users)mapFields(user,user1);
+        user1.setApts(buildings);
+        if(user1.getId() == null){
+            throw new IllegalStateException("Mapping did not work properly. Please check what is wrong with the mapping...");
+        }
+        return user1;
     }
 }

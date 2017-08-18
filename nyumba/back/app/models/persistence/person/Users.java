@@ -26,6 +26,7 @@ public class Users extends Tenant {
     @Transient
     private Map<String,Object> claims;
 
+    @JsonIgnore
     @Constraints.Required
     @Column(unique = true)
     private String username;
@@ -40,6 +41,7 @@ public class Users extends Tenant {
  //   @OrderColumn
  //   private String[] roles;
 
+    @JsonIgnore
     @Column
     private String role;
 
@@ -130,7 +132,7 @@ public class Users extends Tenant {
     private Set<Bill> bills;
 
     public Set<Bill> getBills() {
-        return bills;
+        return bills == null? new HashSet<>():bills;
     }
 
     public void setBills(Set<Bill> bills) {
@@ -157,6 +159,8 @@ public class Users extends Tenant {
         this.tenantRooms.add(room);
     }
     public void removeTenantRoom(Room room){
-        this.tenantRooms.remove(room);
+        if(this.tenantRooms != null){
+            this.tenantRooms.remove(room);
+        }
     }
 }

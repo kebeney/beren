@@ -1,19 +1,27 @@
 package models;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import models.persistence.Building;
 import models.persistence.Room;
 import models.persistence.person.Users;
 import play.Logger;
+import play.db.jpa.JPAApi;
+import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
 import play.mvc.Result;
 import security.ErenValidator;
 import security.Secured;
 import util.*;
 
+import javax.persistence.EntityManager;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
 
 import static play.libs.Json.toJson;
+import static play.mvc.Http.Context.Implicit.request;
 import static play.mvc.Results.*;
 
 /** Class used to step through the process to apply necessary logic to the submitted object.
@@ -49,58 +57,81 @@ public class ObjectPersist {
         if (mappedObj instanceof ClientMsg){
             return ok(toJson(mappedObj));
         }else{
+            //TODO: delete the loginSuccess message below...
             return ok(mapper.toJson(new ClientMsg("loginSuccess",mappedObj),args));
             //return ok(mapper.toJson(mappedObj,args));
         }
     }
 
-    public Result login(Http.Request req, Map<Args, Object> args) {
-        //Get expected arguments
-        args = erenValidator.getArgs(req, args);
+//    public Result login(Http.Request req, Map<Args, Object> args) {
+//        //Get expected arguments
+//        args = erenValidator.getArgs(req, args,false);
+//
+//        //Validate and bind request to the user object
+//        Users user = (Users)erenValidator.validate(types.handleType(args), args);
+//
+//        if(user == null) return badRequest(mapper.toJson(new ClientMsg("Invalid request."),args));
+//
+//        //Authenticate the mapped & validated user object
+//        String userJson = secured.login(user, args);
+//
+////        if(user != null && user.getRole().equalsIgnoreCase("tenant")) {
+////            user = this.mapper.mapTenant(user);
+////        }
+//        //If authenticator returns null, respond with unauthorized else respond with user data.
+//        return userJson == null ? unauthorized("Invalid username or password") : ok(userJson);
+//    }
+//-----------------------------------------Async processing--------------------------------------------------------------
 
-        //Validate and bind request to the user object
-        Users user = (Users)erenValidator.validate(types.handleType(args), args);
+    public CompletionStage<Result> loginAsync(Http.Request req, final Map<Args, Object> args) {
 
-        if(user == null) return badRequest(mapper.toJson(new ClientMsg("Invalid request."),args));
+ //       CompletionStage<Result> result = CompletableFuture.supplyAsync(() -> {
+
+           System.out.println("I am here...");
+           logger.debug("Attempting to login");
+            //Get expected arguments
+            erenValidator.getArgs(req, args);
+
+            //Validate and bind request to the user object
+            Users user = (Users)erenValidator.validate(types.handleType(args), args);
+
+//            if(user == null) return badRequest(mapper.toJson(new ClientMsg("Invalid request."),args));
+        if(user == null) return CompletableFuture.supplyAsync(() -> badRequest(mapper.toJson(new ClientMsg("Invalid request."),args)) );
 
         //Authenticate the mapped & validated user object
-        user = secured.login(user, args);
-
-        if(user != null && user.getRole().equalsIgnoreCase("tenant")) {
-            user = this.mapTenant(user);
-        }
-        //If authenticator returns null, respond with unauthorized else respond with user data.
-        return user == null ? unauthorized("Invalid username or password") : ok(mapper.toJson(new ClientMsg("loginSuccess",user),args));
-    }
-    private Users mapTenant(Users user){
-        Set<Room> rooms = user.getTenantRooms();
-        List<Building> apts = new ArrayList();
-
-        //For each room
-        for(Room r: rooms){
-            //Find building and add room.
-            Building building;
-            int idx = apts.indexOf(r.getBuilding());
-            //If building is not in the array yet, create it and put it into array.
-            if(idx < 0){
-                building = new Building();
-                building = (Building)this.mapper.mapFields(r.getBuilding(),building);
-
-                apts.add(building);
-            }else{
-                building = apts.get(idx);
+        return secured.loginAsync(user, args).thenApply((result) -> {
+            if (result == null){
+                return unauthorized("Invalid username or password"); }
+            else {
+                return  ok(result);
             }
-            building.addTenantRoom(r);
-        }
+        });
+    }
 
-        Set<Building> buildings = new HashSet<>();
-        buildings.addAll(apts);
-        Users user1 = new Users();
-        user1 = (Users)mapper.mapFields(user,user1);
-        user1.setApts(buildings);
-        if(user1.getId() == null){
-            throw new IllegalStateException("Mapping did not work properly. Please check what is wrong with the mapping...");
-        }
-        return user1;
+    public CompletionStage<Result> applyAsync(Http.Request req, final Map<Args,Object> args) {
+
+        //Retrieve expected arguments from client and put them in args map.
+        erenValidator.getArgs(req, args);
+        //if(true) return badRequest();
+        logger.debug(mapper.toJson(args.get(Args.data),args).toString());
+
+        //Validate and bind the form here
+        Object mappedObj = erenValidator.validate(types.handleType(args), args);
+
+        //Apply logic and persist the object.
+        args.put(Args.mappedObj,mappedObj);
+        CompletionStage<Result> result = types.handleTypeAsync(args).thenApply((object) ->{
+            //Invoke the mapper only if mappedObj is not a ClientMsg. We are returning ClientMsg during new user signup.
+            if(object instanceof String){
+                return ok((String)object);
+            }
+            if (object instanceof ClientMsg){
+                  return ok(toJson(object));
+            }else{
+                //TODO: delete the loginSuccess message below...
+                 return ok(mapper.toJson(new ClientMsg("loginSuccess",object),args));
+            }
+        });
+        return result;
     }
 }

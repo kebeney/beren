@@ -10,7 +10,7 @@ public enum Args {
     //mappedObj - is the object that has been mapped from the request. It might be re-assigned as the execution proceeds and might eventually be returned.
     //data - used to identify the json data object that is a jsonArray supplied from client request
     //terminate is used to indicate that processing should end and result is returned to client.
-    mappedObj,classType,data, action, userName, user, role, filterOutAllExceptFields, serializeAllExceptFields;
+    mappedObj,classType,data, action, userName, user, role,skipHeader, filterOutAllExceptFields, serializeAllExceptFields;
     public enum ACTIONS { EDIT, DELETE }
 
 }

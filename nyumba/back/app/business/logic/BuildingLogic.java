@@ -12,6 +12,8 @@ import util.Mapper;
 
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static play.libs.Json.toJson;
 
@@ -89,5 +91,9 @@ public class BuildingLogic {
             return new ClientMsg("",new ClientMsg(existing.getId(),"deleted"));
         }
         return obj;
+    }
+
+    public CompletionStage<Object> applyAsync(Map<Args, Object> args) {
+        return CompletableFuture.supplyAsync(() -> jpaApi.withTransaction(() -> this.apply(args)));
     }
 }

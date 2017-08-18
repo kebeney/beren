@@ -37,11 +37,11 @@ export class QuestionsProvider {
     //Invoke getQuizInstances and return them
     return this.getQuizInstances(filledQuiz);
   }
+
   /**
-   * @param type - type of obj or questions to be returned.
-   * @param valObj - value object containing data to be displayed
-   * @returns any - it can return LabelValueType or QuestionBase<string> based on whether valObj is null or not
-   * @param fill - boolean type to indicate if questions should be pre filled with values.
+   *
+   * @param {QuizPayLType} pl - Type of questions.
+   * @returns {any[]} list of questions or prefilled questions or key - value labels
    */
   public getQuizOrKeyVal(pl: QuizPayLType): any[]{
     let option = pl.val == null || (typeof pl.val == 'string' && pl.val.trim() == '') ? 1: pl.fill ? 2 : 3 ;
@@ -59,8 +59,8 @@ export class QuestionsProvider {
           option == 2 ? this.getPreFilledQuiz(pl.val,this.roomQuiz) : this.getLabelValues(pl.val,this.roomQuiz);
       }
       case 'paymentDetails': {
-        return  option == 1 ? this.getQuizInstances(this.getPaymentQuiz(pl)):
-          option == 2 ? this.getPreFilledQuiz(pl.val,this.getPaymentQuiz(pl)) : this.getLabelValues(pl.val,this.paymentQuiz);
+        return  option == 1 ? this.getQuizInstances(this.getOneTimePaymentQuiz(pl)):
+          option == 2 ? this.getPreFilledQuiz(pl.val,this.getOneTimePaymentQuiz(pl)) : this.getLabelValues(pl.val,this.oneTimePaymentQuiz);
       }
       case 'apts': {
         return  option == 1 ? this.getQuizInstances(this.getAptQuiz(pl)):
@@ -168,11 +168,11 @@ export class QuestionsProvider {
     this.personQuiz.forEach( pq => {tenantQuiz.push(pq)});
     return tenantQuiz;
   };
-  private getPaymentQuiz(pl: QuizPayLType): QuizType[]{
-    let tmpPaymentQuiz: any = [];
+  private getOneTimePaymentQuiz(pl: QuizPayLType): QuizType[]{
+    let tmpOnePaymentQuiz: any = [];
     //If role is landlord/caretaker
     if(pl.role === 'landlord'){
-      tmpPaymentQuiz.push(
+      tmpOnePaymentQuiz.push(
         {
           key: 'rcpt',
           label: 'Receipt Number',
@@ -180,26 +180,15 @@ export class QuestionsProvider {
           ctrlType: 'ion-text-box'
         }
       );
-    }else if(pl.role === 'tenant'){
-      //If role is tenant, ask for mobile number.
-      //TODO: Take this out and use the verified and authenticated mobile number.
-      //TODO: Create a process to authenticate the user through automated text message and email.
-      tmpPaymentQuiz.push(
-        {
-          key: 'mobileNumber',
-          label: 'Mobile Number',
-          order: 3,
-          ctrlType: 'ion-text-box'
-        }
-      );
-    }else {
+    }else if(pl.role !== 'tenant'){
+      //We skip the tenant role because it is known but we don't add any more questions for tenant.
       throw new Error('Unrecognized role:'+pl.role);
     }
 
-    this.paymentQuiz.forEach(q => {
-      tmpPaymentQuiz.push(q);
+    this.oneTimePaymentQuiz.forEach(q => {
+      tmpOnePaymentQuiz.push(q);
     });
-    return tmpPaymentQuiz;
+    return tmpOnePaymentQuiz;
   }
   private roomQuiz = [
     {
@@ -215,6 +204,32 @@ export class QuestionsProvider {
       ctrlType: 'ion-text-box'
     }
   ];
+  // private accountPaymentBankQuiz = [
+  //   {
+  //     key: 'bankName',
+  //     label: 'Bank Name',
+  //     order: 1,
+  //     ctrlType: 'ion-text-box'
+  //   },
+  //   {
+  //     key: 'accountName',
+  //     label: 'Account Name',
+  //     order: 2,
+  //     ctrlType: 'ion-text-box'
+  //   },
+  //   {
+  //     key: 'accountNumber',
+  //     label: 'Account Number',
+  //     order: 3,
+  //     ctrlType: 'ion-text-box'
+  //   },
+  //   {
+  //     key: 'phoneNumber',
+  //     label: 'Associated Phone Number',
+  //     order: 4,
+  //     ctrlType: 'ion-text-box'
+  //   }
+  // ];
   private personQuiz = [
     {
       key: 'firstName',
@@ -273,7 +288,7 @@ export class QuestionsProvider {
     }
   ];
   //TODO: disable or enable payment Date based on wether role is landlord or tenant.
-  private paymentQuiz = [
+  private oneTimePaymentQuiz = [
     {
       key: 'pmtDtEpochMilli',
       label: 'Date',

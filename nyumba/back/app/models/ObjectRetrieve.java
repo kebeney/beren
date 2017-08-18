@@ -40,6 +40,8 @@ public class ObjectRetrieve {
 
     public Result apply(Http.Request req, Long parentId, Map<Args, Object> args) {
 
+        args = this.erenValidator.getHeaderArgs(req,args);
+
         logger.debug("Type:"+args.get(Args.classType)+" parentId: "+parentId);
         //NB: Don't call the validator here. We don't need to validate anything because the get request does not have a body.
         //args = erenValidator.getArgs(req,args);
@@ -53,8 +55,13 @@ public class ObjectRetrieve {
 
         }
 
+        logger.debug("Before pulled user...");
+        logger.debug("user"+args.get(Args.user));
+
         Users user = (Users)args.get(Args.user);
+
         logger.debug("Pulled user is:"+user.getId());
+
 //        Users user = (Users)args.get(Args.user);
 //        if(user.getRole().equalsIgnoreCase("tenant") && result.size() > 0){
 //            if(result.get(0) instanceof Building){

@@ -3,21 +3,38 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Account</ion-title>
+    <ion-title *ngIf="!(user | async)" >Login</ion-title>
+    <ion-title *ngIf="user | async" >Account</ion-title>
   </ion-navbar>
 </ion-header>
 
-<ion-content class="outer-content">
-  <div padding-top text-center *ngIf="username">
+<ion-content>
+  <page-login *ngIf="!(user | async)" ></page-login>
+  <div padding-top text-center *ngIf="user | async">
     <img src="http://www.gravatar.com/avatar?d=mm&s=140" alt="avatar">
-    <h2>{{username}}</h2>
+    <h2>{{(user | async).username}}</h2>
 
     <ion-list inset>
-      <button ion-item (click)="updatePicture()">Update Picture</button>
-      <button ion-item (click)="changeUsername()">Change Username</button>
-      <button ion-item (click)="changePassword()">Change Password</button>
-      <button ion-item (click)="support()">Support</button>
-      <button ion-item (click)="logout()">Logout</button>
+      <button ion-button round small (click)="updatePicture()">Update Picture</button>
+      <ion-item>
+        <ion-label>Username</ion-label>
+        <div item-content >{{(user | async).claims.username}}</div>
+      </ion-item>
+      <ion-item>
+        <ion-label>Password</ion-label>
+        <div item-content ><button (click)="resetPwd()">Reset Password</button></div>
+      </ion-item>
+      <ion-item>
+        <ion-label>Phone Number</ion-label>
+        <div item-content >{{(user | async).phoneNo}}</div>
+      </ion-item>
+      <ion-item>
+        <ion-label>Email</ion-label>
+        <div item-content >{{(user | async).email}}</div>
+      </ion-item>
+
+      <button ion-button round small (click)="updatePersonalInfo()">Update Personal Info</button>
+
     </ion-list>
   </div>
 </ion-content>

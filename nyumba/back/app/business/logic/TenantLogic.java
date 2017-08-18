@@ -12,6 +12,8 @@ import util.Mapper;
 
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /** This class handle logic related to tenant.
  * Created by kip on 7/21/17.
@@ -67,5 +69,9 @@ public class TenantLogic {
             return new ClientMsg("",new ClientMsg(tenant.getId(),"deleted"));
         }
         return obj;
+    }
+
+    public CompletionStage<Object> applyAsync(Map<Args, Object> args) {
+        return CompletableFuture.supplyAsync(() ->  jpaApi.withTransaction(() -> this.apply(args)) );
     }
 }

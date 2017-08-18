@@ -3,21 +3,22 @@ package security;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import io.jsonwebtoken.*;
-import models.persistence.Room;
 import models.persistence.person.Users;
 import play.Configuration;
 import play.Logger;
 import play.db.jpa.JPAApi;
-import play.mvc.Http;
+import play.libs.F;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import play.mvc.Security;
 import util.Args;
 import util.ClientMsg;
+import util.Mapper;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.security.Key;
@@ -27,6 +28,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static play.libs.Json.toJson;
 
@@ -36,14 +39,14 @@ import static play.libs.Json.toJson;
 public class Secured extends Security.Authenticator{
 
     private static final Logger.ALogger logger = Logger.of(Secured.class);
-
     private final JPAApi jpaApi;
     private final Configuration config;
     private final SecureRandom secureRandom = new SecureRandom();
+    private final Mapper mapper;
 
     @Inject
-    public Secured(JPAApi jpaApi, Configuration config){
-        this.jpaApi = jpaApi; this.config = config;
+    public Secured(Configuration config, JPAApi jpaApi, Mapper mapper){
+        this.config = config; this.jpaApi = jpaApi; this.mapper = mapper;
     }
 
     @Override
@@ -89,10 +92,11 @@ public class Secured extends Security.Authenticator{
         return tokenBody;
     }
 
-    public Users login(Object obj, Map<Args, Object> args) {
+    public String login(Object obj, Map<Args, Object> args) {
+
         if(obj instanceof Users){
             Users user = (Users)obj;
-
+            //Users returnUser = jpaApi.withTransaction(() -> {    });
             TypedQuery<Users> userQuery = jpaApi.em().createNamedQuery("select User by username", Users.class);
             userQuery.setParameter("username",user.getUsername());
             List<Users> list = userQuery.getResultList();
@@ -105,6 +109,9 @@ public class Secured extends Security.Authenticator{
                 return null;
             } logger.debug("Size of user list is: "+list.size());
             Users pulledUser = list.get(0);
+
+            if(pulledUser == null) return null;
+
             byte [] hashedPwd = hashPassword(user.getPassword(),pulledUser.getSalt(),config.getInt("db.default.pwd.iterations"));
 
             if(Arrays.equals(pulledUser.getHash(),hashedPwd)){
@@ -115,28 +122,22 @@ public class Secured extends Security.Authenticator{
 //                pulledUser.setHash(null);
                 args.put(Args.role,pulledUser.getRole());
                 args.put(Args.user,pulledUser);
-
-                if(pulledUser.getRole().equalsIgnoreCase("tenant")){
-
-//                    pulledUser.getApts().forEach(a -> {
-//                        logger.debug("Rooms count: "+a.getRooms().size());
-//                        logger.debug("Selected Rooms count: "+a.getSelectedRooms().size());
-//                        //-----------------------------------------------------------------------------------------
-//                        a.getRooms().clear();
-//                        a.getRooms().addAll(a.getSelectedRooms());
-//                        //-----------------------------------------------------------------------------------------
-//                        a.getSelectedRooms().clear();
-//                    });
-                }
-                return pulledUser;
             }
-            return null;
+            if(pulledUser != null && pulledUser.getRole().equalsIgnoreCase("tenant")) {
+                pulledUser = this.mapper.mapTenant(pulledUser);
+            }
+            return mapper.toJson(new ClientMsg("loginSuccess",pulledUser),args);
         }
         else{
             logger.debug("Error: Wrong object. Expected User but found : "+obj.getClass().getName());
             throw new IllegalStateException("Server Error. Please try later");
         }
     }
+
+    public CompletionStage<String> loginAsync(Object obj, Map<Args, Object> args) {
+        return CompletableFuture.supplyAsync(() -> jpaApi.withTransaction(() -> this.login(obj,args)));
+    }
+
     private byte[] hashPassword( final char[] password, final byte[] salt, final int iterations) {
         try {
             SecretKeyFactory skf = SecretKeyFactory.getInstance( "PBKDF2WithHmacSHA512" );

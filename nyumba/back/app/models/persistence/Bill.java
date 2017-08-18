@@ -1,13 +1,11 @@
 package models.persistence;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import models.persistence.person.Users;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 /**This class is used to represent a bill or a payment from a client. The last entry in sorted order by txtTmEpochMilli will be the balance
  * that the client owes.
@@ -38,18 +36,32 @@ public class Bill implements Comparable<Bill> {
     private Long txnTmEpochMilli;
     private String description;
     private String status;
-    private Long auditNumber;
+    private UUID auditNumber;
 
  //   @Column(nullable = true)
  //   @JsonManagedReference
  //   @ManyToOne(targetEntity = Users.class,fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumn(name = "users_id", nullable = false, updatable = false)
     private Users user;  //TODO: This is supposed to be used to keep track of the user who paid the bill.
 
+    @Override
     public int compareTo(Bill bill){
-        return this.txnTmEpochMilli.compareTo(bill.txnTmEpochMilli);
+        if(this.txnTmEpochMilli == null){
+            return 1;
+        }else if(bill.txnTmEpochMilli == null){
+            return -1;
+        }
+        else if(this.txnTmEpochMilli == bill.txnTmEpochMilli){
+            return 0;
+        }else{
+            return this.txnTmEpochMilli > bill.txnTmEpochMilli ? 1: -1 ;
+        }
+    }
+    @Override
+    public boolean equals(Object other){
+        return other instanceof Bill && ((((Bill) other).txnTmEpochMilli.equals(this.txnTmEpochMilli)));
     }
 
     public Long getId() {
@@ -138,5 +150,21 @@ public class Bill implements Comparable<Bill> {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public UUID getAuditNumber() {
+        return auditNumber;
+    }
+
+    public void setAuditNumber(UUID auditNumber) {
+        this.auditNumber = auditNumber;
     }
 }

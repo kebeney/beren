@@ -7,8 +7,9 @@ import { MapPage } from '../map/map';
 //import { SpeakerListPage } from '../speaker-list/speaker-list';
 //import {ApartmentPage} from "../apartment/apartment";
 //import {TenantHomePage} from "../tenant-home/tenant-home";
-import {HomePage} from "../home/home";
 import {SchedulePage} from "../schedule/schedule";
+import {HomePage} from "../home/home";
+import {AccountPage} from "../account/account";
 
 @Component({
   templateUrl: 'tabs.html'
@@ -17,10 +18,10 @@ export class TabsPage {
   // set the root pages for each tab
   tabs: any[] = [];
   tab1Root: any = HomePage;
-  tab2Root: any = SchedulePage;
+  tab2Root: any = AccountPage;
   tab3Root: any = MapPage;
   tab4Root: any = AboutPage;
-//  tab5Root: any = AboutPage;
+  tab5Root: any = SchedulePage;
   mySelectedIndex: number;
 
   constructor(navParams: NavParams) {
@@ -42,7 +43,8 @@ export class TabsPage {
 
     this.mySelectedIndex = navParams.data.tabIndex || 0;
   }
-  ionViewDidLoad(){
+  ionViewDidEnter(){
+    console.log('selected:'+this.mySelectedIndex);
   }
 
 }

@@ -1,34 +1,145 @@
-import {HTTP_CALL, landlordRole, QuizPayLType, SET_EDIT_MODE, State} from "../interfaces/consts";
+import {
+  HTTP_CALL, landlordRole, LOGOUT, Person, QuizPayLType, RESET_MESSAGE, RESTORE_USER, SEND_MESSAGE, SET_EDIT_MODE,
+  State
+} from "../interfaces/consts";
 import {Store} from "@ngrx/store";
 import {Injectable} from "@angular/core";
-import {AlertController, Events, Loading, LoadingController} from "ionic-angular";
+import {AlertController, Loading, LoadingController, ToastController} from "ionic-angular";
 import {Subject} from "rxjs/Subject";
 import {QuestionsProvider} from "./questions/questions";
 import {Headers} from "@angular/http";
 import {Observable} from "rxjs/Observable";
+import {UserData} from "./user-data";
 
 @Injectable()
 export class FunctionsProvider{
 
   private headers = new Headers({'Content-type': 'application/json'});
-//  public user: Person;
+  private destroy: Subject<void> = new Subject<void>();
+
   public editMode: Observable<boolean>;
-  //public editModeSub: Subject<boolean> = new Subject();
+
+  private user: Observable<Person>;
+
+  private isLoggedInObs: Observable<boolean>;
   private loading: Loading;
   public navOptionsBack =    {animate: true, animation: 'ios-transition',duration: 300, direction: 'back',    easing: 'ease-out' };
   public navOptionsForward = {animate: true, animation: 'ios-transition',duration: 300, direction: 'forward', easing: 'ease-out' };
   private msgSubs: Subject<void> = new Subject<void>();
   private state: Observable<State> ;
+  private toast: any;
 
   constructor(private store: Store<State>, private questions: QuestionsProvider, private ldgCtrl: LoadingController,
-              private altCtrl: AlertController, private events: Events){
+              private altCtrl: AlertController, private userData: UserData, private toastCtrl: ToastController){
     this.state = store.select('componentReducer');
     this.editMode = new Observable(observer => {
-      this.state.subscribe(s => {
+      this.state.takeUntil(this.destroy).subscribe(s => {
         observer.next(s.editMode);
       });
     });
+    this.state.takeUntil(this.destroy).subscribe(s => {
+      if(s.msg === 'loginSuccess' && s.users[0]){
+        this.userData.localLogin(s.users[0]).then(() => {
+          this.store.dispatch({type: RESET_MESSAGE});
+          console.log('Saved user to local...');
+        })
+      }else if(s.msg === 'tokenExp' || s.msg == 'logout'){
+        this.userData.localLogout().then(() => {
+          console.log('Removed user from local...');
+          this.store.dispatch({type: RESET_MESSAGE});
+          this.store.dispatch({type: LOGOUT});
+          (s.msg === 'tokenExp') && this.presentToast("Session Expired");
+        });
+      } else if(s.msg && s.msg != null){
+        this.presentToast(s.msg);
+      }
+    });
   }
+private showing: boolean = false;
+  presentToast(toastMsg: string) {
+    //this.toast && this.toast.dismiss();
+    if(!this.showing){
+      this.showing = true;
+      this.toast = this.toastCtrl.create({
+        message: toastMsg,
+        duration: 6000,
+        position: 'top',
+        showCloseButton: true,
+        closeButtonText: 'Dismiss'
+        //dismissOnPageChange: true,
+        //cssClass: 'primary'
+      });
+
+      this.toast.onDidDismiss(() => {
+        this.showing = false;
+        console.log('Dismissed toast');
+      });
+
+      this.toast.present();
+    }
+  }
+
+  getLoginObservable(): Observable<boolean>{
+    if(this.isLoggedInObs == null){
+      console.log('Creating login Obs');
+      this.isLoggedInObs = new Observable(observer => {
+        this.state.takeUntil(this.destroy).subscribe(s => {
+          observer.next(s.isLoggedIn);
+        });
+      });
+    }
+    return this.isLoggedInObs;
+  }
+  isLoggedIn(): boolean {
+    let loggedIn = false;
+    this.state.take(1).subscribe(s => {loggedIn = s.isLoggedIn});
+    return loggedIn;
+  }
+//TODO: can as well remove this function and just use the generic objectObservable
+  getUserObservable(): Observable<State>{
+    if(this.user == null){
+      console.log('Creating user observable');
+      this.user = new Observable(observer => {
+        this.state.takeUntil(this.destroy).subscribe(s => {
+          console.log('Next user...');
+          observer.next(s['users'][0]);
+        });
+      }) ;
+    }
+    return this.user;
+  }
+  getObjectObservable(name:string,id:any,destroy: Subject<any>){
+    return new Observable(observer => {
+      this.state.takeUntil(destroy).subscribe(s => {
+        let obj = this.findObj(s['users'],id,name);
+        observer.next(obj);
+      });
+    });
+  }
+
+  /**
+   *
+   * @param {string} objKey - Name of the object to find from the user object
+   * @param objId - id of the same object as the name above. e.g if name is "rooms", this id will refer to the specific room to find from array of rooms.
+   * @param {string} propToReturn - name of the object that the listener should listen to. It should be a property of the object found. e.g we could find
+   * a room object and then listen to the bills property (array in this case) in that room object. This propToReturn in this case should refer to the bills array.
+   * @returns {Observable<State>}
+   */
+  //Find object with given objKey and given objId, then return the given propToReturn
+  getArrayObs(objKey:string, objId:number, propToReturn:string,  destroy: Subject<any>): Observable<Array<any>> {
+    return new Observable(observer => {
+      this.state.takeUntil(destroy).subscribe((s:State) => {
+        if(s.users.length > 0){
+          //This will find an object not an array. So we will need to reference the target array which is a property of this object.
+          let obj = this.findObj(s.users,objId,objKey);
+          if(typeof obj !== 'undefined' && obj != null){
+            observer.next(obj[propToReturn]);
+          }
+        }
+      })
+    })
+  }
+
 //           ext,  parentId, data,     model, jsonPath
 //Example: '/add','apt.id', '$event', 'Room','[user,apt,room]'
   formOutput(ext: string, parentId: string, data: any, model: string ,jsonPath: any [], args?: any){
@@ -53,7 +164,7 @@ export class FunctionsProvider{
     this.validatePath(jsonPath);
     this.setAuthorization().then((authorized:boolean) => {
       if(authorized){ this.store.dispatch({type: HTTP_CALL, payload: { data:'', method: 'get', ext:ext, jsonPath: jsonPath, tgt: target }}) }
-      else {this.events.publish("user:logout");}
+      else {this.store.dispatch({type: SEND_MESSAGE, payload: {msg: 'logout'}} )}
     })
   }
   setEditMode(value: boolean){
@@ -80,6 +191,15 @@ export class FunctionsProvider{
       }
     });
     return role;
+  }
+  restoreUser(){
+    this.userData.getUser().then(u => {
+      if(u){
+        console.log('Dispatching RESTORE_USER...');
+        this.store.dispatch({type: RESTORE_USER, payload: {user: u}}); }
+    });
+    //console.log('Dispatching loginSuccess...');
+    //this.store.dispatch({type: SEND_MESSAGE, payload: {msg: 'loginSuccess'}});
   }
   setAuthorization(): Promise<boolean>{
     console.log('Setting authorization');
@@ -110,14 +230,14 @@ export class FunctionsProvider{
 
     path.forEach((obj) => {
       if( obj['key'] === 'users' ) {
-        if(user !== null) {
+        if(user && user !== null) {
          newPath.push({key:'users',id: user.id})
         }else{
           newPath.push({key:'users',id:''});
         }
       }
       else if ( obj['key'] === 'apts' ) {
-        if(apt  !== null) {
+        if(apt && apt  !== null) {
           newPath.push({key:'apts',id: apt.id});
         }else{
           newPath.push({key:'apts',id:''})
@@ -125,14 +245,14 @@ export class FunctionsProvider{
       }
       else if ( obj['key'] === 'rooms' ){
         //First rename the key to either landlordRooms or tenantRooms based on role
-        newPath.push({key: (role === landlordRole) ? 'landlordRooms':'tenantRooms', id: (room !== null)? room.id:'' });
+        newPath.push({key: (role === landlordRole) ? 'landlordRooms':'tenantRooms', id: (room && room !== null)? room.id:'' });
       }else if(obj['key'] === 'landlordRooms'){
 
-        newPath.push({key: 'landlordRooms', id: (room !== null)? room.id:'' });
+        newPath.push({key: 'landlordRooms', id: (room && room !== null)? room.id:'' });
 
       }else if(obj['key'] === 'tenantRooms'){
 
-        newPath.push({key: 'tenantRooms', id: (room !== null)? room.id:'' });
+        newPath.push({key: 'tenantRooms', id: (room && room !== null)? room.id:'' });
 
       }else if(obj['key'] === 'bills' || obj['key'] === 'personList'){
         newPath.push(obj);
@@ -180,8 +300,8 @@ export class FunctionsProvider{
     return alert.present().then(res => { console.log(res)});
   }
 
-  findObj(theObject: any, id: any, propToFind: string){
-    return this.getObject(theObject,id, '',propToFind);
+  findObj(objToSearch: any, id: any, propToFind: string){
+    return this.getObject(objToSearch,id, '',propToFind);
   }
 
   getObject(theObject: any, id: any, lastProp: string, propToFind: string): any {
@@ -214,5 +334,9 @@ export class FunctionsProvider{
       }
     }
     return result;
+  }
+  ngOnDestroy(){
+    this.destroy.next();
+    this.destroy.complete();
   }
 }

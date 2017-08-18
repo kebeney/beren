@@ -11,6 +11,8 @@ import util.Mapper;
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**This class handles the logic regarding the actions associated to a user.
  * Created by kip on 7/21/17.
@@ -40,7 +42,7 @@ public class UserLogic {
                     return new ClientMsg("Username: "+tmpUser.getUsername()+" already exists. Please choose another name.");
                 }
                 Users user = secured.encryptPassword(tmpUser);
-                jpaApi.em().merge(user);
+                jpaApi.em().persist(user);
                 return new ClientMsg("User creation successful! Please log in to proceed.");
             }else{
                 //Existing user. Pull current user, and update it.Password reset should not be part of this flow.
@@ -49,12 +51,20 @@ public class UserLogic {
                     throw new UnsupportedOperationException();
                 }
                 Users existingUser = jpaApi.em().find(Users.class, tmpUser.getId());
-                this.mapper.mapFields(tmpUser,existingUser);
+                existingUser = (Users)this.mapper.mapFields(tmpUser,existingUser);
+                this.jpaApi.em().persist(existingUser);
+                Users returnObj = existingUser;
+                if(existingUser.getRole().equalsIgnoreCase("tenant")){
+                    returnObj = this.mapper.mapTenant(existingUser);
+                }
+
+                returnObj.setClaims(secured.getJWT(returnObj,new HashMap<>()));
+                return mapper.toJson(new ClientMsg("loginSuccess",returnObj),args);
             }
-            jpaApi.em().merge(tmpUser);
+            //jpaApi.em().merge(tmpUser);
             //Return encrypted object representing jwt. It will be turned to json after return.
-            tmpUser.setClaims(secured.getJWT(tmpUser,new HashMap<>()));
-            return tmpUser;
+
+
             //return new UserWrap(tmpUser,secured.getJWT(tmpUser,new HashMap<>()));
         }
         else if(action == Args.ACTIONS.DELETE){
@@ -62,5 +72,9 @@ public class UserLogic {
             throw new UnsupportedOperationException("User deletions is currently unsupported. ");
         }
         return obj;
+    }
+
+    public CompletionStage<Object> applyAsync(Map<Args, Object> args) {
+        return CompletableFuture.supplyAsync(()-> jpaApi.withTransaction(() -> this.apply(args)) );
     }
 }

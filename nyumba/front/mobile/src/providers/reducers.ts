@@ -19,15 +19,20 @@ export const componentReducer = (state = new State(), action: any) => {
             //replace search object and leave
             nextState['searchResults'] = data;
           }else if(typeof data !== 'undefined' && data !== null){
-            findAndUpdateArray(action.payload.jsonPath,nextState,action.payload.data);
+            findAndUpdateArray(action.payload.jsonPath,nextState,data);
             nextState['persist'] = true;
           }
           //TODO: merge these two into one. Figure out between data['msg'] and pl.msg . Look at message sending from backend.
-          if(data !== null && data && typeof data['msg'] == 'string'){
-            nextState['msg'] = data['msg']
-          }
+          // if(data !== null && data && typeof data['msg'] === 'string'){
+          //   nextState['msg'] = data['msg']
+          // }
           if( typeof pl.msg == 'string'){
             nextState['msg'] = pl.msg;
+            if(pl.msg === 'tokenExp'){
+              nextState['isLoggedIn'] = false; nextState['users'] = [];
+            }else if(pl.msg === 'loginSuccess'){
+              nextState['isLoggedIn'] = true;
+            }
           }
           console.log('nextState:',nextState);
           return nextState;
@@ -54,7 +59,10 @@ export const componentReducer = (state = new State(), action: any) => {
         }
         case SEND_MESSAGE: {
           //Send message to whoever is listening for this message
-          nextState['msg'] = action.payload.msg;
+          let myMsg = action.payload.msg;
+          nextState['msg'] = myMsg;
+          if(myMsg === 'logout'){nextState['isLoggedIn'] = false; nextState['users'] = []}
+          if(myMsg === 'loginSuccess'){nextState['isLoggedIn'] = true;}
           return nextState;
       }
         case LOGOUT: {
@@ -64,11 +72,12 @@ export const componentReducer = (state = new State(), action: any) => {
           //TODO: And invalidate security token at this point
           nextState.editMode = false;
           nextState['users'] = [];
-          nextState['msg'] = 'logoutComplete';
+          nextState['isLoggedIn'] = false;
           return nextState;
         }
         case RESTORE_USER: {
           nextState.users[0] = action.payload.user;
+          nextState['isLoggedIn'] = true;
           return nextState;
         }
         case SET_EDIT_MODE: {

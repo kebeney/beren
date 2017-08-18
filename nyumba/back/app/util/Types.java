@@ -9,6 +9,7 @@ import models.persistence.person.Tenant;
 import models.persistence.person.Users;
 import play.Logger;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 /** This class provides the routing to the appropriate logic class based on a switch value set in a param sent from the client.
  * Created by kip on 5/12/17.
@@ -49,5 +50,29 @@ public class Types {
                 logger.debug(message);
                 throw new IllegalArgumentException(message);
         }
+    }
+    public CompletionStage<Object> handleTypeAsync(Map<Args,Object> args){
+
+        Object obj = args.get(Args.mappedObj);
+        logger.debug("Types SWITCH - Action: "+args.get(Args.action));
+        switch((String)args.get(Args.classType)){
+            case "Building":
+                return buildingLogic.applyAsync(args) ;
+            case "Room":
+                return roomLogic.applyAsync(args) ;
+            case "RoomDetails":
+            case "Payment":
+            case "Bill":
+                return billLogic.applyAsync(args) ;
+            case "Tenant":
+                return tenantLogic.applyAsync(args) ;
+            case "User":
+                return userLogic.applyAsync(args) ;
+            default:
+                String message = "No class of type \""+args.get(Args.classType)+"\" was found. Please add "+args.get(Args.classType)+" to Types.java class";
+                logger.debug(message);
+                throw new IllegalArgumentException(message);
+        }
+
     }
 }

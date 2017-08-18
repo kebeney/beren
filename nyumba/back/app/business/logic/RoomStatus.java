@@ -41,6 +41,9 @@ public class RoomStatus implements Runnable{
         });
 
     }
+    public Object updateBill(Object arg, JPAApi jpaApi){
+        return jpaApi.withTransaction(() -> updateBill(arg));
+    }
 
     public Object updateBill(Object arg) {
 //        Bill newBill = new Bill();
@@ -77,7 +80,7 @@ public class RoomStatus implements Runnable{
             //newBill.setRcpt(bill.getRcpt());
             //newBill.setPmtDtEpochMilli(bill.getPmtDtEpochMilli());
             bill.setTxnTmEpochMilli(Instant.now().toEpochMilli());
-            setStatus(bill);
+            setRoomStatus(bill);
             return bill;
         } else if(arg instanceof Person){
             Tenant person = (Tenant) arg;
@@ -102,6 +105,8 @@ public class RoomStatus implements Runnable{
                 balance = new BigDecimal(0).add(dueRent);
             }
             Bill latest = createBill(dueRent,leaseStart,person.getRoom(), balance,this.getSystemUser());
+            latest.setStatus("Automated");
+            jpaApi.em().merge(latest);
 
             GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone(leaseStart.getZone()));
             ZonedDateTime currentTime = calendar.toZonedDateTime();
@@ -112,6 +117,8 @@ public class RoomStatus implements Runnable{
             while(tmpTimeStamp.isBefore(currentTime)){
                 latest = createBill(person.getRoom().getRent(),tmpTimeStamp,person.getRoom(), latest.getBal().add(latest.getRoom().getRent()),
                         this.getSystemUser());
+                latest.setStatus("Automated");
+                jpaApi.em().merge(latest);
                 tmpTimeStamp = tmpTimeStamp.plus(Period.ofMonths(1));
             }
             return person;
@@ -128,7 +135,7 @@ public class RoomStatus implements Runnable{
         newBill.setRoom(room);
         newBill.setType("Bill");
         newBill.setUser(user);
-        setStatus(newBill);
+        setRoomStatus(newBill);
         jpaApi.em().persist(newBill);
         return newBill;
     }
@@ -154,14 +161,15 @@ public class RoomStatus implements Runnable{
                 newBill.setBal(newBill.getAmt().add(bill.getBal())); // add amount to existing balance to get new balance from curr bill
                 newBill.setTxnTmEpochMilli(Instant.now().toEpochMilli());
                 newBill.setType("Bill");
+                newBill.setStatus("Automated");
                 //newBill.setPaidBy(this.getSystemUser());
-                setStatus(newBill);
+                setRoomStatus(newBill);
                 jpaApi.em().persist(newBill);
             }
         }
 
     }
-    private void setStatus(Bill newBill){
+    private void setRoomStatus(Bill newBill){
         if(newBill.getBal().compareTo(new BigDecimal(0)) <= 0 ) {
             newBill.getRoom().setStatus("Good");
         }else{

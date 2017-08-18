@@ -2,7 +2,6 @@ package security;
 
 import business.logic.CommonLogic;
 import com.fasterxml.jackson.databind.JsonNode;
-import models.persistence.person.Users;
 import play.Logger;
 import play.data.Form;
 import play.data.FormFactory;
@@ -59,7 +58,14 @@ public class ErenValidator<T> {
         args.put(Args.classType,body.get("type").asText());
         args.put(Args.data,body.get("data"));
 
-        return getHeaderArgs(req,args);
+        Boolean skipHeader = (Boolean)args.get(Args.skipHeader);
+
+        if(skipHeader != null && skipHeader){
+            return args;
+        }
+        else{
+            return getHeaderArgs(req,args);
+        }
 
     }
 

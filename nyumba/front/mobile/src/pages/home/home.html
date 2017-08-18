@@ -3,11 +3,11 @@
     <button ion-button menuToggle [hidden]="fns.editMode | async" >
       <ion-icon name="menu" ></ion-icon>
     </button>
-    <ion-title *ngIf="!loggedIn" >Login</ion-title>
+    <ion-title *ngIf="!(isLoggedIn | async)" >Login</ion-title>
     <ion-title *ngIf="fns.getRole() === 'tenant'" >Properties</ion-title>
     <ion-title *ngIf="fns.getRole() === 'landlord'" >Apartments</ion-title>
 
-    <ion-buttons *ngIf="loggedIn" end>
+    <ion-buttons *ngIf="isLoggedIn | async" end>
       <button ion-button (click)="fns.flipEditMode();">
         <span *ngIf="fns.getRole() === 'tenant'" >
           <ion-icon *ngIf="!(fns.editMode | async)" name="search" ></ion-icon> &nbsp; <span>{{(fns.editMode | async) ? 'Done' : 'Search'}}</span>
@@ -22,7 +22,7 @@
 </ion-header>
 
 <ion-content>
-  <page-login *ngIf="!loggedIn" ></page-login>
+  <page-login *ngIf="!(isLoggedIn | async)" ></page-login>
 
   <page-tenant-home *ngIf="fns.getRole() === 'tenant'" ></page-tenant-home>
 

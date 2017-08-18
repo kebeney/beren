@@ -24,7 +24,7 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   rooms: Observable<State>;
   balanceObs: Observable<any>;
   arrayValsObs: Observable<any>;
-  private unsub: Subject<void> = new Subject<void>();
+  private destroy: Subject<void> = new Subject<void>();
   private prsnSubs: Subscription;
   private prsnPulled = false;
 
@@ -38,7 +38,7 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   }
   ngOnInit(){
     this.rooms = new Observable(observer => {
-      this.state.takeUntil(this.unsub).subscribe(s => {
+      this.state.takeUntil(this.destroy).subscribe(s => {
         let user: Person = s['users'][0];
         let role: string = this.fns.getRole() ;
         if(typeof s['users'][0] !== 'undefined'){
@@ -74,14 +74,15 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
     switch(target){
       case 'occupants':{
         //Trigger this only if the personList was empty to begin with.
-        console.log('Lenght is: '+room.personList.length);
+        console.log('Length is: '+room.personList.length);
         if(room.personList.length === 0 ) {
           console.log('Invoking prsnLsnt');
           this.prsnSubs = this.getPrsnListListener( room )
         }
 
         let jsonPath  = this.fns.mapPathId(personsPath,this.user,this.apt,room);
-        this.arrayValsObs = this.getArrValsObs(this.fns.getRole() === landlordRole? 'landlordRooms':'tenantRooms',room.id,'personList');
+        //Find landlordRoom with given roomId then result the personList property
+        this.arrayValsObs = this.fns.getArrayObs(this.fns.getRole() === landlordRole? 'landlordRooms':'tenantRooms',room.id || -1,'personList',this.destroy);
 
         this.navCtrl.push(GenericView,{
           parent: room, name: 'Tenant', target: 'tenant', title: room.rent + ' Per Month', topInfo: {key: 'Occupants:', value: '' } ,
@@ -93,53 +94,21 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
       case 'payments': {
 
         let jsonPath = this.fns.mapPathId(paymentsPath,this.user,this.apt,room);
-        this.arrayValsObs = this.getArrValsObs(this.fns.getRole() === landlordRole? 'landlordRooms':'tenantRooms',room.id,'bills');
-        this.balanceObs = this.getBalanceObservable(room);
+        this.arrayValsObs = this.fns.getArrayObs(this.fns.getRole() === landlordRole? 'landlordRooms':'tenantRooms',room.id || -1,'bills',this.destroy);
+        //this gets the balance observable for the selected room.
+        this.balanceObs = new Observable(observer => { this.arrayValsObs.subscribe((bills:Array<any>) => {observer.next(bills.length > 0 ? bills[bills.length -1].bal: 0)});});
 
         this.navCtrl.push(GenericView,{
-          parent: room, name: 'Payment', target: 'paymentDetails', colsToShowArr: [{time:true, value: 'pmtDtEpochMilli'},{value:'amt'},{value:'type'}],
+          parent: room, name: 'Payment', target: 'paymentDetails', colsToShowArr: [{time:true, value: 'pmtDtEpochMilli'},{value:'amt'},{value:'status'}],
           arrayVals: this.arrayValsObs, topInfo: {key: 'Balance', value: this.balanceObs }, jsonPath: jsonPath
         },this.fns.navOptionsForward);
         break;
       }
     }
   }
-  private getBalanceObservable(room:Room): Observable<State> {
-    return new Observable(observer => {
-      let role = this.fns.getRole();
-      this.state.takeUntil(this.unsub).subscribe((s:State) => {
-        let _room = this.fns.findObj(s['users'], room.id, role === landlordRole ? 'landlordRooms': 'tenantRooms');
-        if(_room != undefined && _room != null){
-          observer.next(_room.bills.length > 0 ? _room.bills[_room.bills.length -1].bal: 0)
-        }
-      })
-    })
-  }
-
-  /**
-   *
-   * @param {string} name - Name of the object to find from the user object
-   * @param id - id of the same object as the name above. e.g if name is "rooms", this id will refer to the specific room to find.
-   * @param {string} arrName - name of the array object that the listener should listen to. It should be a property of the object found. e.g we could find
-   * a room object and then listen to the bills array in that room object. This arrName should refer to the bills array.
-   * @returns {Observable<State>}
-   */
-  private getArrValsObs(name:string,id:any, arrName:string): Observable<State> {
-    return new Observable(observer => {
-      this.state.takeUntil(this.unsub).subscribe((s:State) => {
-        if(s.users.length > 0){
-          //This will find an object not an array. So we will need to reference the target array which is a property of this object.
-          let obj = this.fns.findObj(s.users,id,name);
-          if(typeof obj !== 'undefined' && obj != null){
-            observer.next(obj[arrName]);
-          }
-        }
-      })
-    })
-  }
   //This is a special case function to listen and get the new list of bills when a new tenant is added to an empty room.
   private getPrsnListListener(roomArg:Room): Subscription {
-    return this.state.takeUntil(this.unsub).subscribe((s:State) => {
+    return this.state.takeUntil(this.destroy).subscribe((s:State) => {
       let role = this.fns.getRole();
       let user = s.users[0];
       let apt = this.fns.findObj(s['users'], this.apt.id, 'apts');
@@ -158,9 +127,9 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
   }
   ngOnDestroy(){
     console.log('Destroying room summary observables');
-    this.unsub.next();
-    this.unsub.complete();
-    this.unsub.unsubscribe();
+    this.destroy.next();
+    this.destroy.complete();
+    this.destroy.unsubscribe();
    // this.unsub.
   }
 

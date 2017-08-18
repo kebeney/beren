@@ -33,8 +33,8 @@
     <!----------------------------------------Not Editing---------------------------------------->
 
     <ion-item-group *ngIf="!(fns.editMode | async)">
-
-        <ion-item *ngFor='let room of (rooms | async)'  >
+      <ion-item-sliding *ngFor='let room of (rooms | async)' >
+        <ion-item >
           <span class="row" >
             <button class="col tr-bg" (click)="tapped(room, (fns.getRole() === 'landlord') ? 'occupants' : 'payments')" ><a >{{ room?.name }}</a></button>
             <button class="col tr-bg" (click)="tapped(room, 'payments')" >
@@ -42,7 +42,10 @@
             </button>
           </span>
         </ion-item>
-
+        <ion-item-options side="left">
+          <button ion-button color="secondar" (click)="remove(room)">Remove</button>
+        </ion-item-options>
+      </ion-item-sliding>
     </ion-item-group>
 
     <!---------------------------------------Editing--------------------------------------------->
