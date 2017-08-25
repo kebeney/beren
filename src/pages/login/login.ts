@@ -1,14 +1,12 @@
 import { Component } from '@angular/core';
-import { NgForm } from '@angular/forms';
 
 import { NavController } from 'ionic-angular';
 
 import { UserData } from '../../providers/user-data';
 
-import { UserOptions } from '../../interfaces/user-options';
-
-import { TabsPage } from '../tabs-page/tabs-page';
-import { SignupPage } from '../signup/signup';
+import {FunctionsProvider} from "../../providers/functions/functions";
+import {usersPath} from "../../interfaces/constants";
+import {QuestionViewPage} from "../question-view/question-view";
 
 
 @Component({
@@ -16,21 +14,29 @@ import { SignupPage } from '../signup/signup';
   templateUrl: 'login.html'
 })
 export class LoginPage {
-  login: UserOptions = { username: '', password: '' };
-  submitted = false;
 
-  constructor(public navCtrl: NavController, public userData: UserData) { }
+  credentials: {username: string, password?: string} = {username: 'bkebeney', password: 'kimbo456'};
 
-  onLogin(form: NgForm) {
-    this.submitted = true;
+  constructor(public navCtrl: NavController, public userData: UserData, public fns: FunctionsProvider) { }
 
-    if (form.valid) {
-      this.userData.login(this.login.username);
-      this.navCtrl.push(TabsPage);
+
+
+  login(provider: string){
+
+    switch (provider){
+      case 'custom': {
+        this.fns.formOutput({ext:'/api/auth/login',parentId:undefined,obj:this.credentials,model:'User',jsonPath:usersPath, tgt:'login'});
+        break;
+      }case 'google': {
+      //this.auth.googleLogin();
+      break;
+    }case 'facebook': {
+      //this.auth.facebookLogin();
+      break;
+    }
     }
   }
-
-  onSignup() {
-    this.navCtrl.push(SignupPage);
+  signup(){
+    this.navCtrl.push(QuestionViewPage,{title: 'New User', model: 'User',questions: this.fns.getQuiz({tgt:'user',val:undefined,fill:false}), target: 'user', jsonPath: usersPath, urlExt: '/signup'});
   }
 }

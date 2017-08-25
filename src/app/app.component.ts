@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import {Component, Injector, ViewChild} from '@angular/core';
 
 import { Events, MenuController, Nav, Platform } from 'ionic-angular';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -12,12 +12,15 @@ import { MapPage } from '../pages/map/map';
 import { SignupPage } from '../pages/signup/signup';
 import { TabsPage } from '../pages/tabs-page/tabs-page';
 import { TutorialPage } from '../pages/tutorial/tutorial';
-import { SchedulePage } from '../pages/schedule/schedule';
 import { SpeakerListPage } from '../pages/speaker-list/speaker-list';
 import { SupportPage } from '../pages/support/support';
 
 import { ConferenceData } from '../providers/conference-data';
 import { UserData } from '../providers/user-data';
+import {FunctionsProvider} from "../providers/functions/functions";
+import {Observable} from "rxjs/Observable";
+import {appInjector, LOGOUT} from "../interfaces/constants";
+import {HomePage} from "../pages/home/home";
 
 export interface PageInterface {
   title: string;
@@ -42,7 +45,7 @@ export class ConferenceApp {
   // the left menu only works after login
   // the login page disables the left menu
   appPages: PageInterface[] = [
-    { title: 'Schedule', name: 'TabsPage', component: TabsPage, tabComponent: SchedulePage, index: 0, icon: 'calendar' },
+    { title: 'Home', name: 'TabsPage', component: TabsPage, tabComponent: HomePage, index: 0, icon: 'home' },
     { title: 'Speakers', name: 'TabsPage', component: TabsPage, tabComponent: SpeakerListPage, index: 1, icon: 'contacts' },
     { title: 'Map', name: 'TabsPage', component: TabsPage, tabComponent: MapPage, index: 2, icon: 'map' },
     { title: 'About', name: 'TabsPage', component: TabsPage, tabComponent: AboutPage, index: 3, icon: 'information-circle' }
@@ -50,7 +53,7 @@ export class ConferenceApp {
   loggedInPages: PageInterface[] = [
     { title: 'Account', name: 'AccountPage', component: AccountPage, icon: 'person' },
     { title: 'Support', name: 'SupportPage', component: SupportPage, icon: 'help' },
-    { title: 'Logout', name: 'TabsPage', component: TabsPage, icon: 'log-out', logsOut: true }
+    { title: 'Logout', name: 'LoginPage', component: LoginPage, icon: 'log-out', logsOut: true }
   ];
   loggedOutPages: PageInterface[] = [
     { title: 'Login', name: 'LoginPage', component: LoginPage, icon: 'log-in' },
@@ -58,6 +61,7 @@ export class ConferenceApp {
     { title: 'Signup', name: 'SignupPage', component: SignupPage, icon: 'person-add' }
   ];
   rootPage: any;
+  appLoggedIn: Observable<boolean>;
 
   constructor(
     public events: Events,
@@ -66,14 +70,18 @@ export class ConferenceApp {
     public platform: Platform,
     public confData: ConferenceData,
     public storage: Storage,
-    public splashScreen: SplashScreen
+    public splashScreen: SplashScreen,
+    public fns: FunctionsProvider,
+    public myAppInjector:Injector
   ) {
 
+    appInjector(this.myAppInjector);
+    
     // Check if the user has already seen the tutorial
     this.storage.get('hasSeenTutorial')
       .then((hasSeenTutorial) => {
-        if (hasSeenTutorial) {
-          this.rootPage = TabsPage;
+      if (hasSeenTutorial) {
+          this.rootPage = LoginPage;
         } else {
           this.rootPage = TutorialPage;
         }
@@ -83,13 +91,9 @@ export class ConferenceApp {
     // load the conference data
     confData.load();
 
-    // decide which menu items should be hidden by current login status stored in local storage
-    this.userData.hasLoggedIn().then((hasLoggedIn) => {
-      this.enableMenu(hasLoggedIn === true);
-    });
-    this.enableMenu(true);
-
     this.listenToLoginEvents();
+    //Try to restore the user of the session was still active
+    this.fns.restoreUser();
   }
 
   openPage(page: PageInterface) {
@@ -105,7 +109,7 @@ export class ConferenceApp {
     // If we are already on tabs just change the selected tab
     // don't setRoot again, this maintains the history stack of the
     // tabs even if changing them from the menu
-    if (this.nav.getActiveChildNavs().length && page.index != undefined) {
+    if (!page.logsOut && this.nav.getActiveChildNavs().length && page.index != undefined) {
       this.nav.getActiveChildNavs()[0].select(page.index);
     // Set the root of the nav with params if it's a tab index
   } else {
@@ -116,7 +120,8 @@ export class ConferenceApp {
 
     if (page.logsOut === true) {
       // Give the menu time to close before changing to logged out
-      this.userData.logout();
+      //this.userData.logout();
+      this.fns.dispatch({type: LOGOUT, pl:{msg:'logout'}})
     }
   }
 
@@ -125,24 +130,18 @@ export class ConferenceApp {
   }
 
   listenToLoginEvents() {
-    this.events.subscribe('user:login', () => {
-      this.enableMenu(true);
-    });
+    this.appLoggedIn = this.fns.getAppComponentLoginObservable().map(m => {
 
-    this.events.subscribe('user:signup', () => {
-      this.enableMenu(true);
-    });
-
-    this.events.subscribe('user:logout', () => {
-      this.enableMenu(false);
-    });
+      if(m === 'loginSuccess'){
+        this.openPage({title: 'Home', name: 'TabsPage', component: TabsPage, icon:'home'});
+        return true;
+      }
+      else {
+        this.openPage({title: 'Login', name: 'LoginPage', component: LoginPage, icon: 'log-in'});
+        return false;
+      }
+    }).shareReplay(1);
   }
-
-  enableMenu(loggedIn: boolean) {
-    this.menu.enable(loggedIn, 'loggedInMenu');
-    this.menu.enable(!loggedIn, 'loggedOutMenu');
-  }
-
   platformReady() {
     // Call any initial plugins when ready
     this.platform.ready().then(() => {

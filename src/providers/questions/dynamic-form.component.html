@@ -1,0 +1,11 @@
+<div>
+  <form (ngSubmit)="onSubmit()" [formGroup]="form" id="mainForm" >
+    <div *ngFor="let question of questions" class="form-row">
+      <df-question [question]="question" [form]="form" [state]="state" (changes)="changes.emit($event)" ></df-question>
+    </div>
+  </form>
+  <div class="form-row center">
+<!--    <button (click)="cancel.emit('')" ion-button round small > Cancel </button>  -->
+    <button (click)="formOutput.emit(form.value); cancel.emit()" [disabled]="!form.valid" ion-button round small >Submit</button>
+  </div>
+</div>
