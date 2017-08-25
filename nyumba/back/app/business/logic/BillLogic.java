@@ -91,7 +91,7 @@ public class BillLogic {
 
                 }else if(user.getRole().equalsIgnoreCase("landlord")){
                     //Perform landlord logic
-                    payment.setStatus("Manual");
+                    payment.setStatus("ME");
                     payment.setType("landlord");
                     jpaApi.em().persist(payment);
                     //Otherwise if user is landlord/caretaker, then this is a manual entry. Save it to DB appropriately.
@@ -109,7 +109,7 @@ public class BillLogic {
             }
         }else if(action == Args.ACTIONS.DELETE){
 
-            return CompletableFuture.completedFuture(new ClientMsg("Payments Cannot be deleted. Please create a new entry to balance off existing mismatch."));
+            return CompletableFuture.completedFuture(new ClientMsg("Payments Cannot be modified. Please create a new entry to balance off existing mismatch."));
         }
         return CompletableFuture.completedFuture(obj);
     }

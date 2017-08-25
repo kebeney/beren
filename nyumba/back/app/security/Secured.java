@@ -65,7 +65,7 @@ public class Secured extends Security.Authenticator{
     @Override
     public Result onUnauthorized(Context ctx) {
         logger.debug("Returning unAuthorized to: "+ctx.request().headers().get("Origin")[0]);
-        return unauthorized("tokenExp");
+        return unauthorized("Session Expired");
     }
     public String getUserName(String jwt){
         JsonNode body = this.getAuthorizationHeader(jwt);
@@ -96,7 +96,7 @@ public class Secured extends Security.Authenticator{
 
         if(obj instanceof Users){
             Users user = (Users)obj;
-            //Users returnUser = jpaApi.withTransaction(() -> {    });
+
             TypedQuery<Users> userQuery = jpaApi.em().createNamedQuery("select User by username", Users.class);
             userQuery.setParameter("username",user.getUsername());
             List<Users> list = userQuery.getResultList();
@@ -122,11 +122,13 @@ public class Secured extends Security.Authenticator{
 //                pulledUser.setHash(null);
                 args.put(Args.role,pulledUser.getRole());
                 args.put(Args.user,pulledUser);
+                if(pulledUser.getRole().equalsIgnoreCase("tenant")) {
+                    pulledUser = this.mapper.mapTenant(pulledUser);
+                }
+                return mapper.toJson(new ClientMsg("loginSuccess",pulledUser),args);
+            }else{
+                return null;
             }
-            if(pulledUser != null && pulledUser.getRole().equalsIgnoreCase("tenant")) {
-                pulledUser = this.mapper.mapTenant(pulledUser);
-            }
-            return mapper.toJson(new ClientMsg("loginSuccess",pulledUser),args);
         }
         else{
             logger.debug("Error: Wrong object. Expected User but found : "+obj.getClass().getName());

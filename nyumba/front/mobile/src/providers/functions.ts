@@ -50,7 +50,7 @@ export class FunctionsProvider{
           this.store.dispatch({type: LOGOUT});
           (s.msg === 'tokenExp') && this.presentToast("Session Expired");
         });
-      } else if(s.msg && s.msg != null){
+      } else if(s.msg && s.msg != null && s.msg !== 'logoutSuccess'){
         this.presentToast(s.msg);
       }
     });

@@ -13,7 +13,6 @@ import 'rxjs/Rx';
 import {Config} from "./config";
 import {FunctionsProvider} from "./functions";
 import {HTTP_CALL, HTTP_FAILED, HTTP_SUCCESS} from "../interfaces/consts";
-//import {Events} from "ionic-angular";
 
 @Injectable()
 export class MainEffects {

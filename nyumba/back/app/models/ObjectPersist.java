@@ -58,7 +58,7 @@ public class ObjectPersist {
             return ok(toJson(mappedObj));
         }else{
             //TODO: delete the loginSuccess message below...
-            return ok(mapper.toJson(new ClientMsg("loginSuccess",mappedObj),args));
+            return ok(mapper.toJson(new ClientMsg("Success",mappedObj),args));
             //return ok(mapper.toJson(mappedObj,args));
         }
     }
@@ -87,8 +87,7 @@ public class ObjectPersist {
 
  //       CompletionStage<Result> result = CompletableFuture.supplyAsync(() -> {
 
-           System.out.println("I am here...");
-           logger.debug("Attempting to login");
+           logger.debug("Attempting to Authenticate");
             //Get expected arguments
             erenValidator.getArgs(req, args);
 
@@ -96,7 +95,7 @@ public class ObjectPersist {
             Users user = (Users)erenValidator.validate(types.handleType(args), args);
 
 //            if(user == null) return badRequest(mapper.toJson(new ClientMsg("Invalid request."),args));
-        if(user == null) return CompletableFuture.supplyAsync(() -> badRequest(mapper.toJson(new ClientMsg("Invalid request."),args)) );
+        if(user == null) return CompletableFuture.supplyAsync(() -> ok(mapper.toJson(new ClientMsg("Invalid request."),args)) );
 
         //Authenticate the mapped & validated user object
         return secured.loginAsync(user, args).thenApply((result) -> {
@@ -122,14 +121,14 @@ public class ObjectPersist {
         args.put(Args.mappedObj,mappedObj);
         CompletionStage<Result> result = types.handleTypeAsync(args).thenApply((object) ->{
             //Invoke the mapper only if mappedObj is not a ClientMsg. We are returning ClientMsg during new user signup.
+            logger.debug("Returning: "+toJson(object));
             if(object instanceof String){
                 return ok((String)object);
-            }
+            }else
             if (object instanceof ClientMsg){
                   return ok(toJson(object));
             }else{
-                //TODO: delete the loginSuccess message below...
-                 return ok(mapper.toJson(new ClientMsg("loginSuccess",object),args));
+                 return ok(mapper.toJson(new ClientMsg("Success",object),args));
             }
         });
         return result;

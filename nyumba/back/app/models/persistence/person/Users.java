@@ -48,10 +48,13 @@ public class Users extends Tenant {
     @Column(nullable = true)
     @JsonManagedReference
     @ManyToMany(targetEntity = Building.class, fetch = FetchType.LAZY)
+    @OrderBy("name ASC")
     private Set<Building> apts;
 
+    @Column
     @ManyToMany(targetEntity = Room.class, fetch = FetchType.LAZY)
     @JsonManagedReference
+    @OrderBy("name ASC")
     private Set<Room> tenantRooms;
 
     @Transient

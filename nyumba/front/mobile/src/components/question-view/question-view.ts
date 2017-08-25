@@ -33,6 +33,10 @@ export class QuestionView {
     console.log('Entering QuestionView..');
     if(!this.fns.isLoggedIn()){
       this.navCtrl.popToRoot();
+    }else{
+      this.fns.getLoginObservable().subscribe(loggedIn => {
+        if(!loggedIn) this.navCtrl.popToRoot();
+      });
     }
   }
   ionViewWillLeave(){

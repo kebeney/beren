@@ -116,7 +116,8 @@ public class GeneralController extends Controller {
         return objectPersist.applyAsync(request(), args).exceptionally((ex) -> {
             ex.printStackTrace();
             logger.debug(ex.toString());
-            return badRequest("Something went wrong. Please verify info and try again .");
+            logger.debug("I am in exception");
+            return ok(toJson(new ClientMsg("Server Error: Please verify info and try later.")));
         });
     }
 

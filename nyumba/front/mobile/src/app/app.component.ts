@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 
-import {Events, MenuController, Nav, Platform} from 'ionic-angular';
+import {Events, MenuController, Nav, Platform, Tabs} from 'ionic-angular';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { Storage } from '@ionic/storage';
@@ -36,10 +36,10 @@ export interface PageInterface {
   templateUrl: 'app.template.html'
 })
 export class ConferenceApp {
-  //TODO: get back to this @ViewChild(Tabs) tabs: Tabs;
   // the root nav is a child of the root app component
   // @ViewChild(Nav) gets a reference to the app's root nav
   @ViewChild(Nav) nav: Nav;
+  @ViewChild(Tabs) tabs: Tabs;
   public state: Observable<State>;
   public isLoggedIn: Observable<boolean>;
 

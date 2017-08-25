@@ -84,6 +84,10 @@ export class GenericView implements OnInit{
     console.log('Entering GenericView..');
     if(!this.fns.isLoggedIn()){
       this.navCtrl.popToRoot();
+    }else{
+      this.fns.getLoginObservable().subscribe(loggedIn => {
+        if(!loggedIn) this.navCtrl.popToRoot();
+      });
     }
   }
    ionViewWillLeave(){

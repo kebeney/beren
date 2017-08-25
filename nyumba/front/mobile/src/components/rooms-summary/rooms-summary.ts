@@ -54,6 +54,10 @@ export class RoomsSummaryComponent implements OnInit, OnDestroy{
     console.log('Entering RoomSummaryPage..');
     if(!this.fns.isLoggedIn()){
       this.navCtrl.popToRoot();
+    }else{
+      this.fns.getLoginObservable().subscribe(loggedIn => {
+        if(!loggedIn) this.navCtrl.popToRoot();
+      });
     }
   }
   ionViewDidLoad(){

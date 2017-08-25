@@ -6,7 +6,7 @@ import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {QuestionView} from "../../components/question-view/question-view";
 import {FunctionsProvider} from "../../providers/functions";
-import {Apt, aptModel, aptsPath, EditArgs, State} from "../../interfaces/consts";
+import {Apt, aptModel, aptsPath, EditArgs, Person, State} from "../../interfaces/consts";
 import {UserData} from "../../providers/user-data";
 import {LoginPage} from "../login/login";
 import {RoomsSummaryComponent} from "../../components/rooms-summary/rooms-summary";
@@ -19,6 +19,7 @@ import {RoomsSummaryComponent} from "../../components/rooms-summary/rooms-summar
 })
 export class ApartmentPage implements OnInit, OnDestroy{
   user: any;
+  usrObs: Observable<Person>
   jsonPath: Array<{key: any,id: any}> ;
   state: Observable<State>;
   apts: Observable<Apt>;
@@ -44,6 +45,8 @@ export class ApartmentPage implements OnInit, OnDestroy{
     //---------------------------------Tenant search related content----------------------------------------
   }
   ngOnInit(){
+    this.usrObs = this.fns.getUserObservable();
+
     this.apts = new Observable(observer => {
       this.state.takeUntil(this.aptSubs).subscribe((s:State) => {
 
@@ -97,6 +100,7 @@ export class ApartmentPage implements OnInit, OnDestroy{
     }
   }
   tapped(apt: Apt){
+    console.log('Apt is:'+apt.id);
     this.navCtrl.push(RoomsSummaryComponent, {
       user: this.user, apt: apt
     },this.fns.navOptionsForward);

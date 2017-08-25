@@ -35,28 +35,35 @@ public class BuildingLogic {
 
         Args.ACTIONS action = (Args.ACTIONS)args.get(Args.action);   Object obj = args.get(Args.mappedObj);
         Building tmpBuilding = (Building)obj;
-        Users user = commonLogic.getUser(args);
+        Users user = commonLogic.getUser(args,jpaApi);
 
         logger.debug("Building - Action: "+action);
         if(action == Args.ACTIONS.EDIT){
-
-            if(tmpBuilding.getId() == null){
-                //New building.
-                jpaApi.em().persist(tmpBuilding);
-                //Users user = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
-                tmpBuilding.addUsers(user);
-                user.addApt(tmpBuilding);
-                jpaApi.em().merge(user);
-                return jpaApi.em().merge(tmpBuilding);
+            if(user.getRole().equalsIgnoreCase("landlord")){
+                if(tmpBuilding.getId() == null){
+                    //New building.
+                    jpaApi.em().persist(tmpBuilding);
+                    //Users user = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
+                    tmpBuilding.addUsers(user);
+                    user.addApt(tmpBuilding);
+                    jpaApi.em().merge(user);
+                    return jpaApi.em().merge(tmpBuilding);
+                }else{
+                    //Updating the building
+                    Building existing = jpaApi.em().find(Building.class,tmpBuilding.getId());
+                    Object mappedObj = this.mapper.mapFields(tmpBuilding,existing);
+                    return mapper.toJson(new ClientMsg(mappedObj),jpaApi);
+                }
             }else{
-                //Updating the building
-                Building existing = jpaApi.em().find(Building.class,tmpBuilding.getId());
-                return this.mapper.mapFields(tmpBuilding,existing);
+                //Tenant tried to modify or create apt.
+                return new ClientMsg("Action not permitted");
             }
         }else if(action == Args.ACTIONS.DELETE){
-            //Users initiator = jpaApi.em().find(Users.class,tmpBuilding.getParentId());
+
             Building existing = jpaApi.em().find(Building.class,tmpBuilding.getId());
-           // building = jpaApi.em().find(Building.class,building.getId());
+
+            //If object was not found, just return confirmation.
+            if(existing == null) return new ClientMsg("deleted",obj);
 
             logger.debug("Building: "+toJson(tmpBuilding).toString());
             logger.debug("Existing is: "+toJson(existing).toString());
@@ -87,8 +94,8 @@ public class BuildingLogic {
                 throw new IllegalStateException("Role for given user was not found: "+user.getUsername());
             }
 
-            //This has to be nested because of how the front end interprets the message. It needs to be inside the data field.
-            return new ClientMsg("",new ClientMsg(existing.getId(),"deleted"));
+            //return new ClientMsg(existing.getId(),"deleted");
+            return new ClientMsg("deleted",obj);
         }
         return obj;
     }

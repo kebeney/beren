@@ -73,6 +73,7 @@ export const componentReducer = (state = new State(), action: any) => {
           nextState.editMode = false;
           nextState['users'] = [];
           nextState['isLoggedIn'] = false;
+          nextState['msg'] = 'logoutSuccess';
           return nextState;
         }
         case RESTORE_USER: {

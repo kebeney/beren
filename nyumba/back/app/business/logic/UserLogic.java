@@ -59,7 +59,7 @@ public class UserLogic {
                 }
 
                 returnObj.setClaims(secured.getJWT(returnObj,new HashMap<>()));
-                return mapper.toJson(new ClientMsg("loginSuccess",returnObj),args);
+                return mapper.toJson(new ClientMsg("added",returnObj),args);
             }
             //jpaApi.em().merge(tmpUser);
             //Return encrypted object representing jwt. It will be turned to json after return.

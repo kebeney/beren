@@ -77,7 +77,7 @@ public class ObjectRetrieve {
 //                }
 //            }
 //        }
-        return ok(mapper.toJson(new ClientMsg("",result),args));
+        return ok(mapper.toJson(new ClientMsg(result),args));
     }
 
     public Result applySearch(Http.Request req, String searchString, Map<Args, Object> args){
@@ -90,6 +90,6 @@ public class ObjectRetrieve {
         List results = jpaApi.em().createNamedQuery("search Building match anyColumn")
                 .setParameter("searchString","%"+searchString+"%")
                 .setFirstResult(0).setMaxResults(20).getResultList();
-        return ok(mapper.toJson(new ClientMsg("",results),args));
+        return ok(mapper.toJson(new ClientMsg(results),args));
     }
 }

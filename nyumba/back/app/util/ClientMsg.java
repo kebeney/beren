@@ -5,19 +5,22 @@ package util;
  * Created by kip on 6/13/17.
  */
 public class ClientMsg {
+
     private String msg;
-    private Long id;
-    private Object data;
+//    private Long id;
+    private Object obj;
 
     public ClientMsg(){}
-    public ClientMsg(Long id,String msg){
-        this.msg = msg; this.id = id;
-    }
+
     public ClientMsg(String msg){
         this.msg = msg;
     }
-    public ClientMsg(String msg, Object data){
-        this.msg = msg; this.data = data;
+
+    public ClientMsg(String msg, Object obj){
+        this.msg = msg; this.obj = obj;
+    }
+    public ClientMsg(Object obj){
+        this.obj = obj;
     }
 
     public String getMsg() {
@@ -28,19 +31,11 @@ public class ClientMsg {
         this.msg = msg;
     }
 
-    public Long getId() {
-        return id;
+    public Object getObj() {
+        return obj;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
+    public void setObj(Object obj) {
+        this.obj = obj;
     }
 }

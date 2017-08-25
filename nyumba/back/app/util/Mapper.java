@@ -13,6 +13,7 @@ import models.persistence.Room;
 import models.persistence.person.Users;
 import org.springframework.util.ReflectionUtils;
 import play.Logger;
+import play.db.jpa.JPAApi;
 import util.Annotations.ErenMapField;
 
 import javax.inject.Inject;
@@ -25,6 +26,7 @@ import java.util.*;
  */
 public class Mapper {
     private static final Logger.ALogger logger = Logger.of(Mapper.class);
+
 
     /**
      * This function will map fields from src to dst. Null fields and non primitives are ignored. Only the declared methods
@@ -122,6 +124,12 @@ public class Mapper {
     }
 
     public String toJson(Object value, Map <Args,Object> args){
+        return toJson(value);
+    }
+    public String toJson(Object value, JPAApi jpAaPi){
+        return jpAaPi.withTransaction(() -> toJson(value) );
+    }
+    private String toJson(Object value){
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS,false);
         SimpleFilterProvider filters = new SimpleFilterProvider();
@@ -132,8 +140,9 @@ public class Mapper {
         String json = "{}" ;
         try {
             json = mapper.writer().writeValueAsString(value);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        } catch (JsonProcessingException ex) {
+            logger.debug("Exception:",ex);
+            return "{\"msg\": \"Server Error: Please try later.\"}";
         }
         logger.debug("Returning: "+json);
         return json;
