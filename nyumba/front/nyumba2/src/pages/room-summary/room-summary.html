@@ -1,0 +1,52 @@
+<ion-header >
+  <ion-navbar color="primary" >
+    <button ion-button menuToggle>
+      <ion-icon name="menu" ></ion-icon>
+    </button>
+    <ion-title >{{title}}</ion-title>
+
+    <ion-buttons end>
+      <button ion-button (click)="this.add();">
+        <span *ngIf="role  === 'tenant'" >
+          <ion-icon name="search" ></ion-icon> &nbsp; <span>{{(fns.editMode | async) ? 'Done' : 'Search'}}</span>
+        </span>
+        <span *ngIf="role === 'landlord'" >
+          <ion-icon name="add" ></ion-icon>
+        </span>
+
+      </button>
+    </ion-buttons>
+
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-list>
+    <ion-item no-lines >
+      <div class="row" style="background-color: #f7f7f7;" >
+        <ion-header class="col center btm-brd" >Room</ion-header>
+        <ion-header class="col center btm-brd" >Bal</ion-header>
+      </div>
+    </ion-item>
+    <ion-item-sliding #item *ngFor="let obj of (objArray | async)">
+      <ion-item (click)="tapped(obj)" >
+        <a class="row" >
+          <!---------------------- Modify this display conent for each page  ----------------------------->
+          <span class="col center" >{{obj?.name}}</span>
+          <span class="col center" >{{ obj?.bills && obj.bills.length > 0 && obj.bills[obj.bills.length -1 ].bal || 0 }}</span>
+          <!---------------------- Modify this display conent for each page  ----------------------------->
+        </a>
+      </ion-item>
+      <ion-item-options side="right">
+        <button ion-button color="primary" (click)="this.display(obj)">View Item</button>
+        <button ion-button color="dark" (click)="edit(obj)">Edit Item</button>
+      </ion-item-options>
+
+      <ion-item-options side="left">
+        <button ion-button color="danger" (click)="remove(obj)">Delete</button>
+      </ion-item-options>
+
+    </ion-item-sliding>
+  </ion-list>
+</ion-content>

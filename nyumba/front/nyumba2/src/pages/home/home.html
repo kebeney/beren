@@ -1,0 +1,46 @@
+<ion-header >
+  <ion-navbar color="primary" >
+    <button ion-button menuToggle>
+      <ion-icon name="menu" ></ion-icon>
+    </button>
+    <ion-title >{{title}}</ion-title>
+
+    <ion-buttons end>
+      <button ion-button (click)="this.add();">
+        <span *ngIf="role  === 'tenant'" >
+          <ion-icon name="search" ></ion-icon> &nbsp; <span>{{(fns.editMode | async) ? 'Done' : 'Search'}}</span>
+        </span>
+        <span *ngIf="role === 'landlord'" >
+          <ion-icon name="add" ></ion-icon>
+        </span>
+
+      </button>
+    </ion-buttons>
+
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-list>
+    <ion-item-sliding #item *ngFor="let obj of (objArray | async)">
+      <ion-item (click)="tapped(obj)" >
+        <a class="row" >
+          <!---------------------- Modify this display conent for each page  ----------------------------->
+          <span class="col left" >{{obj?.name}}</span>
+          <span class="col right" >{{ role === 'landlord' ? ( obj?.landlordRooms?.length || 0 ) : ( obj?.tenantRooms?.length || 0 )}} Rooms</span>
+          <!---------------------- Modify this display conent for each page  ----------------------------->
+        </a>
+      </ion-item>
+      <ion-item-options side="right">
+        <button ion-button color="primary" (click)="this.display(obj)">View Item</button>
+        <button ion-button color="dark" (click)="edit(obj)">Edit Item</button>
+      </ion-item-options>
+
+      <ion-item-options side="left">
+        <button ion-button color="danger" (click)="remove(obj)">Delete</button>
+      </ion-item-options>
+
+    </ion-item-sliding>
+  </ion-list>
+</ion-content>

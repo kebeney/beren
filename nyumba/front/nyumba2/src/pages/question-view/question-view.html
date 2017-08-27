@@ -1,0 +1,14 @@
+<ion-header>
+  <ion-navbar color="primary">
+    <ion-title >{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content>
+  <div >
+    <!--  '/ext','idKey',id,'target',$event,'back target' -->
+    <dynamic-form [questions]="questions" [state]="(state | async)"
+                  (changes)="updateRooms($event)"
+                  (cancel)="cancel()"
+                  (formOutput)="fns.formOutput({ext:urlExt,parentId:parentId,obj:$event,model:model,jsonPath:jsonPath})"></dynamic-form>
+  </div>
+</ion-content>

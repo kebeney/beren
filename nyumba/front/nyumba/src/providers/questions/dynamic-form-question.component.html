@@ -1,0 +1,28 @@
+<div [formGroup]="form">
+  <div [ngSwitch]="question.controlType">
+
+    <ion-item *ngSwitchCase="'ion-drop-down'" >
+      <ion-label [attr.for]="question.key" color="primary">{{question.label}}</ion-label>
+      <ion-select interface="popover" [(ngModel)]="question.value" [formControlName]="question.key" [id]="question.key" >
+        <ion-option *ngFor="let opt of question.options" [value]="opt.key">{{opt.value}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item *ngSwitchCase="'ion-text-box'" [hidden]="question.hidden" >
+      <ion-label [attr.for]="question.key" color="primary" floating >{{question.label}}</ion-label>
+      <ion-input [type]="question.type" [formControlName]="question.key" [id]="question.key"></ion-input>
+    </ion-item>
+
+    <ion-item *ngSwitchCase="'checkbox'" >
+      <ion-label [attr.for]="question.key" color="primary" >{{question.label}}</ion-label>
+      <ion-checkbox #ck (change)="question.value = ck.checked" color="primary" [formControlName]="question.key" [id]="question.key" ></ion-checkbox>
+    </ion-item>
+
+    <ion-item *ngSwitchCase="'ion-date'" >
+      <ion-label [attr.for]="question.key" color="primary" >{{question.label}}</ion-label>
+      <ion-datetime #dt [formControlName]="question.key" [id]="question.key"  [displayFormat]="question.displayFormat" [pickerFormat]="question.pickerFormat"
+                    [(ngModel)]="question.value" [max]="question.max == null ? null:question.max " ></ion-datetime>
+    </ion-item>
+  </div>
+  <span class="errorMessage" *ngIf="(isDirty || isTouched) && !isValid">{{question.label}} is required</span>
+</div>

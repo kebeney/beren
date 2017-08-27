@@ -1,0 +1,74 @@
+<ion-header >
+  <ion-navbar color="primary" >
+    <button ion-button menuToggle>
+      <ion-icon name="menu" ></ion-icon>
+    </button>
+    <ion-segment [(ngModel)]="segment" (ionChange)="updateSchedule()">
+      <ion-segment-button value="all">
+        All
+      </ion-segment-button>
+      <ion-segment-button value="lapsed">
+        Lapsed
+      </ion-segment-button>
+    </ion-segment>
+    <!--<ion-title >{{title}}</ion-title>  -->
+
+    <ion-buttons end>
+      <button ion-button (click)="searchBar = !searchBar">
+        <ion-icon name="search" ></ion-icon>
+      </button>
+    </ion-buttons>
+
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-toolbar *ngIf="searchBar" no-border-top>
+    <ion-searchbar color="primary"
+                   [(ngModel)]="queryText"
+                   (ionInput)="updateSchedule()"
+                   placeholder="Search">
+    </ion-searchbar>
+  </ion-toolbar>
+
+  <ion-list #objList >
+    <ion-item no-lines >
+      <div class="row eren-header">
+        <ion-header class="col left btm-brd" >Room</ion-header>
+        <ion-header class="col right btm-brd" >Bal</ion-header>
+      </div>
+    </ion-item>
+    <ion-item-sliding #item *ngFor="let obj of objArray" [hidden]="obj['hide']" >
+      <!---------------------- Modify this display content for each page  ----------------------------->
+      <ion-item>
+        <a class="row" >
+          <span class="col left" (click)="tapped(obj,'tenants')" >{{obj?.name}}</span>
+          <span class="col right" (click)="tapped(obj,'payments')" >{{ obj?.bills && obj.bills.length > 0 && obj.bills[obj.bills.length -1 ].bal || 0 }}</span>
+        </a>
+      </ion-item>
+      <!---------------------- Modify this display content for each page  ----------------------------->
+      <ion-item-options side="right">
+        <button ion-button color="primary" (click)="this.display(obj)">View Item</button>
+        <button ion-button color="dark" (click)="edit(obj)">Edit Item</button>
+      </ion-item-options>
+
+      <ion-item-options side="left">
+        <button ion-button color="danger" (click)="remove(obj)">Delete</button>
+      </ion-item-options>
+
+    </ion-item-sliding>
+  </ion-list>
+
+  <ion-list-header [hidden]="objArray?.length > 0">
+    No Entries Found. Click the '+' button to add.
+  </ion-list-header>
+
+  <ion-fab bottom right #fab>
+    <button ion-fab (click)="add()" ><ion-icon name="add"></ion-icon></button>
+  </ion-fab>
+
+</ion-content>
