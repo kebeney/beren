@@ -47,12 +47,13 @@ public class BuildingLogic {
                     tmpBuilding.addUsers(user);
                     user.addApt(tmpBuilding);
                     jpaApi.em().merge(user);
-                    return jpaApi.em().merge(tmpBuilding);
+                    jpaApi.em().merge(tmpBuilding);
+                    return new ClientMsg("success",tmpBuilding);
                 }else{
                     //Updating the building
                     Building existing = jpaApi.em().find(Building.class,tmpBuilding.getId());
                     Object mappedObj = this.mapper.mapFields(tmpBuilding,existing);
-                    return mapper.toJson(new ClientMsg(mappedObj),jpaApi);
+                    return mapper.toJson(new ClientMsg("success",mappedObj),jpaApi);
                 }
             }else{
                 //Tenant tried to modify or create apt.

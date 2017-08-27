@@ -51,16 +51,19 @@ public class RoomLogic {
             logger.debug(toJson(room).toString());
             if(user.getRole().equalsIgnoreCase("landlord")){
                 if(room.getId() == null){
+                    //New Room
                     room.setBuilding(building);
                     setOrder(room);
                     //NB: Don't change this persist to merge. It will cause problems.
                     jpaApi.em().persist(room);
                     building.addLandlordRoom(room);
-                    return room;
+                    return mapper.toJson(new ClientMsg("success",room),jpaApi);
                 }else{
                     //We are updating this room. role of user is landlord
                     Room existingRoom = jpaApi.em().find(Room.class,room.getId());
-                    return this.mapper.mapFields(room,existingRoom);
+                    Object updated = this.mapper.mapFields(room,existingRoom);
+                    jpaApi.em().merge(updated);
+                    return mapper.toJson(new ClientMsg("success",updated),jpaApi);
 
                 }
             }else if(user.getRole().equalsIgnoreCase("tenant")){
@@ -79,7 +82,7 @@ public class RoomLogic {
                         tmpBuilding.addTenantRoom(r);
                     }
                 }
-                return mapper.toJson(new ClientMsg(tmpBuilding),args);
+                return mapper.toJson(new ClientMsg("success",tmpBuilding),args);
             }else{
                 throw new IllegalStateException("Unrecognized role supplied"+user.getRole());
             }

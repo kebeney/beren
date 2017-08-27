@@ -77,7 +77,7 @@ public class ObjectRetrieve {
 //                }
 //            }
 //        }
-        return ok(mapper.toJson(new ClientMsg(result),args));
+        return ok(mapper.toJson(new ClientMsg("success",result),args));
     }
 
     public Result applySearch(Http.Request req, String searchString, Map<Args, Object> args){

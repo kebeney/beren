@@ -39,29 +39,29 @@ public class ObjectPersist {
     {
         this.types = types; this.erenValidator = erenValidator; this.secured = secured; this.mapper = mapper;
     }
-    public Result apply(Http.Request req, Map<Args,Object> args){
-
-        //Retrieve expected arguments from client and put them in args map.
-        args = erenValidator.getArgs(req, args);
-        //if(true) return badRequest();
-        logger.debug(mapper.toJson(args.get(Args.data),args).toString());
-
-        //Validate and bind the form here
-        Object mappedObj = erenValidator.validate(types.handleType(args), args);
-
-        //Apply logic and persist the object.
-        args.put(Args.mappedObj,mappedObj);
-        mappedObj = types.handleType(args);
-
-        //Invoke the mapper only if mappedObj is not a ClientMsg. We are returning ClientMsg during new user signup.
-        if (mappedObj instanceof ClientMsg){
-            return ok(toJson(mappedObj));
-        }else{
-            //TODO: delete the loginSuccess message below...
-            return ok(mapper.toJson(new ClientMsg("Success",mappedObj),args));
-            //return ok(mapper.toJson(mappedObj,args));
-        }
-    }
+//    public Result apply(Http.Request req, Map<Args,Object> args){
+//
+//        //Retrieve expected arguments from client and put them in args map.
+//        args = erenValidator.getArgs(req, args);
+//        //if(true) return badRequest();
+//        logger.debug(mapper.toJson(args.get(Args.data),args).toString());
+//
+//        //Validate and bind the form here
+//        Object mappedObj = erenValidator.validate(types.handleType(args), args);
+//
+//        //Apply logic and persist the object.
+//        args.put(Args.mappedObj,mappedObj);
+//        mappedObj = types.handleType(args);
+//
+//        //Invoke the mapper only if mappedObj is not a ClientMsg. We are returning ClientMsg during new user signup.
+//        if (mappedObj instanceof ClientMsg){
+//            return ok(toJson(mappedObj));
+//        }else{
+//            //TODO: delete the loginSuccess message below...
+//            return ok(mapper.toJson(new ClientMsg("Success",mappedObj),args));
+//            //return ok(mapper.toJson(mappedObj,args));
+//        }
+//    }
 
 //    public Result login(Http.Request req, Map<Args, Object> args) {
 //        //Get expected arguments
@@ -121,13 +121,16 @@ public class ObjectPersist {
         args.put(Args.mappedObj,mappedObj);
         CompletionStage<Result> result = types.handleTypeAsync(args).thenApply((object) ->{
             //Invoke the mapper only if mappedObj is not a ClientMsg. We are returning ClientMsg during new user signup.
-            logger.debug("Returning: "+toJson(object));
+
             if(object instanceof String){
+                logger.debug("Returning: "+object);
                 return ok((String)object);
             }else
             if (object instanceof ClientMsg){
+                logger.debug("Returning: "+toJson(object));
                   return ok(toJson(object));
             }else{
+                logger.debug("Returning: "+toJson(object));
                  return ok(mapper.toJson(new ClientMsg("Success",object),args));
             }
         });
