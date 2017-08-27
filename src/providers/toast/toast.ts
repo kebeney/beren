@@ -2,11 +2,8 @@ import { Injectable } from '@angular/core';
 import 'rxjs/add/operator/map';
 import {Toast, ToastController} from "ionic-angular";
 
-/*
-  Generated class for the ToastProvider provider.
-
-  See https://angular.io/docs/ts/latest/guide/dependency-injection.html
-  for more info on providers and Angular DI.
+/**
+ *
 */
 @Injectable()
 export class ToastProvider {
